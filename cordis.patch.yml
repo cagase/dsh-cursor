@@ -1,0 +1,18 @@
+# HOST-plane row for web and headless. Do not move this into an agent preset:
+# it will register on ctx.skills / ctx.llm (process registries).
+#
+# Install:
+#   dsh plugin --profile web add @cagase/dsh-cursor
+#   dsh plugin --profile headless add @cagase/dsh-cursor
+# Then restart the profile. Verify with:
+#   dsh --profile <name> --dump-config
+#
+# Later layers may override config, e.g.:
+#   - id: dsh-cursor
+#     config:
+#       models: false
+#       skillsCursor: true
+
+- insert:
+    - id: dsh-cursor
+      name: '@cagase/dsh-cursor'

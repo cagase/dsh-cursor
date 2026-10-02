@@ -1,0 +1,11 @@
+# Example AgentTeams member route once the Cursor LLM adapter ships.
+# Keep mailbox/task tools on the member. Do not use cursor_agent_* ACP tools.
+#
+# provider/model must match ctx.llm routes registered by this plugin.
+
+members:
+  - name: implementer
+    role: Implement in-scope checkout work.
+    provider: cursor
+    model: grok-4.6
+    reasoningEffort: high
