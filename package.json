@@ -26,6 +26,9 @@
     "lib/",
     "cordis.patch.yml"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
@@ -36,7 +39,12 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "verify:assets": "node scripts/verify-assets.mjs",
+    "verify:fixture": "node scripts/verify-fixture.mjs",
+    "verify:models": "node scripts/verify-models.mjs",
+    "verify:models:live": "node scripts/verify-models-live.mjs",
+    "verify": "node scripts/verify-assets.mjs && node scripts/verify-fixture.mjs && node scripts/verify-models.mjs && node scripts/verify-models-live.mjs"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.2",
@@ -49,8 +57,8 @@
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "^4.0.2",
-    "@types/node": "^22.10.0",
-    "typescript": "^5.6.3"
+    "@types/node": "^22.20.5",
+    "typescript": "^5.9.3"
   },
   "keywords": [
     "dsh",

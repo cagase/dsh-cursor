@@ -1,11 +1,25 @@
 /**
  * @cagase/dsh-cursor — HOST-plane DeepSeek Harness plugin.
  *
- * Stub only: this package is installable and mounts. Skills/rules/hooks/MCP
- * mapping and the Cursor `agent` LLM adapter are later tasks. Do not register
- * a picker adapter or skill provider here.
+ * Maps `.cursor/`, `~/.cursor/`, and `$CURSOR_CONFIG_DIR` skills, rules, hooks,
+ * and compatible cli/mcp config onto DSH. Registers the Cursor `agent` CLI as
+ * picker + AgentTeams provider `cursor`.
  */
+import { join } from 'node:path'
 import type { Context } from '@deepseek-ai/cordis'
+import { registerHooks } from './hooks/index.js'
+import { isFileTouchTool } from './hooks/names.js'
+import { registerMcp } from './mcp.js'
+import { registerCursorAdapter } from './models/adapter.js'
+import { createPermissionsGate } from './permissions.js'
+import { attachGlobRules, collectRules, injectSessionRules, ruleCatalogCandidates, ruleWatchRoots } from './rules/index.js'
+import { CursorSettingsLoader } from './settings.js'
+import { attachMatchingSkills } from './skills/attach.js'
+import { CursorSkillProvider, PROVIDER_NAME } from './skills/provider.js'
+import type { AgentLike, PluginLogger, SkillCandidate, SkillProviderControl, ToolExecutionLike } from './types.js'
+import { toolFilePath } from './util.js'
+import { watchPaths } from './watch.js'
+import { projectCursorDir, userCursorDir } from './roots.js'
 
 export const name = 'dsh-cursor'
 
@@ -21,19 +35,140 @@ export interface DshCursorConfig {
   skillsCursor?: boolean
   /** Watch Cursor asset files and invalidate catalogs. */
   watch?: boolean
+  /** Apply cli.json / cli-config.json deny tokens at tools/pre-execute. */
+  permissions?: boolean
+  /** Mount mcp.json servers via @deepseek-ai/dsh-mcp-client. */
+  mcp?: boolean
+  /** User-level Cursor directory (usually `~/.cursor`; `CURSOR_CONFIG_DIR` wins). */
+  userCursorDir?: string
+  /** Default hook timeout (ms). */
+  hookTimeoutMs?: number
+  /** Cap on hook-injected context characters. */
+  maxHookOutputChars?: number
+  /** Per-tool-call timeout for bridged MCP servers (ms). */
+  mcpToolCallTimeoutMs?: number
 }
 
-export const DEFAULT_CONFIG: Required<DshCursorConfig> = {
+export const DEFAULT_CONFIG = {
   assets: true,
   models: true,
   skillsCursor: false,
   watch: true,
-}
+  permissions: true,
+  mcp: true,
+  userCursorDir: '~/.cursor',
+  hookTimeoutMs: 30_000,
+  maxHookOutputChars: 10_000,
+  mcpToolCallTimeoutMs: 120_000,
+} as const satisfies Required<DshCursorConfig>
 
-export function apply(ctx: Context, config: DshCursorConfig = {}): void {
+export function apply(ctx: Context | import('./types.js').HostContext, config: DshCursorConfig = {}): void {
+  const host = ctx as import('./types.js').HostContext
   const resolved = { ...DEFAULT_CONFIG, ...config }
-  const logger = ctx.get('logger') as { info?: (m: string) => void } | undefined
-  logger?.info?.(
-    `@cagase/dsh-cursor stub mounted (assets=${resolved.assets} models=${resolved.models} skillsCursor=${resolved.skillsCursor} watch=${resolved.watch}); mapping and model routes are not implemented yet`,
+  const logger = (host.get('logger') ?? {}) as PluginLogger
+
+  if (resolved.models) {
+    registerCursorAdapter(host, logger)
+  }
+
+  if (!resolved.assets) {
+    logger.info?.(`@cagase/dsh-cursor mounted (assets=false models=${resolved.models})`)
+    return
+  }
+
+  const loader = new CursorSettingsLoader(logger, resolved.userCursorDir)
+  const extraRules = async (cwd: string | undefined, signal?: AbortSignal): Promise<SkillCandidate[]> => {
+    if (!cwd) return []
+    return ruleCatalogCandidates(await collectRules(cwd, logger, signal))
+  }
+
+  const skills = host.get('skills') as
+    | { registerProvider: (create: (control: SkillProviderControl) => CursorSkillProvider) => unknown }
+    | undefined
+  let invalidateSkills: (() => void) | undefined
+  let provider: CursorSkillProvider | undefined
+  if (skills && typeof skills.registerProvider === 'function') {
+    skills.registerProvider((control) => {
+      invalidateSkills = control.invalidate
+      provider = new CursorSkillProvider(
+        logger,
+        { userCursorDir: resolved.userCursorDir, skillsCursor: resolved.skillsCursor, agents: true },
+        extraRules,
+      )
+      return provider
+    })
+    logger.info?.(`cursor: skill provider ${JSON.stringify(PROVIDER_NAME)} registered`)
+  } else {
+    logger.warn?.('cursor: ctx.skills is missing; catalog mapping skipped')
+  }
+
+  host.on('agent/session-start', (payload: { source?: string; agent: AgentLike }) => {
+    if (payload.source === 'resume') return
+    void injectSessionRules(payload.agent, logger)
+  })
+
+  host.on('tools/result', (exec: ToolExecutionLike) => {
+    if (!isFileTouchTool(exec.name)) return
+    const agent = exec.agent
+    const filePath = toolFilePath(exec.arguments)
+    if (!agent || !filePath) return
+    void attachGlobRules(agent, filePath, logger)
+    void (async () => {
+      if (!provider) return
+      const listed = await provider.list({ cwd: agent.session.header.cwd })
+      const candidates = Array.isArray(listed) ? listed : listed.candidates
+      await attachMatchingSkills(agent, filePath, candidates, logger)
+    })()
+  })
+
+  const permissionGate = resolved.permissions ? createPermissionsGate(logger, loader) : undefined
+  registerHooks(
+    host,
+    logger,
+    loader,
+    { hookTimeoutMs: resolved.hookTimeoutMs, maxHookOutputChars: resolved.maxHookOutputChars },
+    permissionGate,
+  )
+  if (resolved.mcp) {
+    registerMcp(host, logger, loader, resolved.mcpToolCallTimeoutMs)
+  }
+
+  if (resolved.watch) {
+    const stoppers: Array<() => void> = []
+    const refresh = () => {
+      loader.invalidate()
+      invalidateSkills?.()
+    }
+    const ensure = (cwd?: string) => {
+      for (const stop of stoppers.splice(0)) stop()
+      const roots = [userCursorDir(resolved.userCursorDir)]
+      if (cwd) roots.push(projectCursorDir(cwd), join(cwd, '.cursorrules'))
+      void Promise.all([ruleWatchRoots(cwd)]).then(([ruleRoots]) => {
+        stoppers.push(watchPaths([...roots, ...ruleRoots], logger, refresh))
+      })
+    }
+    host.on('agent/session-start', (payload: { agent: AgentLike }) => {
+      ensure(payload.agent.session.header.cwd)
+    })
+    host.effect(
+      () => () => {
+        for (const stop of stoppers) stop()
+      },
+      'cursor asset watchers',
+    )
+  }
+
+  logger.info?.(
+    `@cagase/dsh-cursor assets mapped (skillsCursor=${resolved.skillsCursor} watch=${resolved.watch} permissions=${resolved.permissions} mcp=${resolved.mcp} models=${resolved.models})`,
   )
 }
+
+export { PROVIDER_NAME } from './skills/provider.js'
+export { PROVIDER_ID } from './models/adapter.js'
+export { userCursorDir, projectCursorDir, findRepoRoot } from './roots.js'
+export { matchGlob } from './util.js'
+export { classifyRule } from './rules/index.js'
+export { evaluateCursorPermissions } from './permissions.js'
+export { matcherHits } from './hooks/run.js'
+export { registerCursorAdapter, CursorLlmAdapter } from './models/adapter.js'
+export { wireCursorModel, parseCursorModelId, probeCursorCli } from './models/cli.js'

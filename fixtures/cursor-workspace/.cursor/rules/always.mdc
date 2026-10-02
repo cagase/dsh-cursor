@@ -1,0 +1,4 @@
+---
+alwaysApply: true
+---
+Always apply this fixture rule. Mention fixture-always when asked what rules are loaded.

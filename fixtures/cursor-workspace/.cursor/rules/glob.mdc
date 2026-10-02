@@ -1,0 +1,6 @@
+---
+alwaysApply: false
+globs:
+  - "**/*.ts"
+---
+Glob fixture rule. Attach when a TypeScript file is touched.

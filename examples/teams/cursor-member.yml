@@ -1,11 +1,18 @@
-# Example AgentTeams member route once the Cursor LLM adapter ships.
-# Keep mailbox/task tools on the member. Do not use cursor_agent_* ACP tools.
+# Example AgentTeams member that uses the Cursor agent CLI as its LLM route.
 #
-# provider/model must match ctx.llm routes registered by this plugin.
+# After `agent login`, run `agent models` and replace `model` with a listed slug.
+# Fast: model: <slug>-fast
+# Extra High: reasoningEffort: xhigh  (or model: <slug>-xhigh)
+#
+# Keep mailbox/task tools on the member. Do not add cursor_agent_* ACP tools.
+# Missing `agent` or login fails with AUTH / MISSING_CREDENTIAL — no silent fallback.
 
 members:
   - name: implementer
     role: Implement in-scope checkout work.
     provider: cursor
-    model: grok-4.6
+    model: cursor-grok-4.6-high
     reasoningEffort: high
+    tools:
+      - mailbox
+      - task

@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "matcher": "Shell",
+        "command": "sh .cursor/hooks/deny.sh"
+      },
+      {
+        "type": "command",
+        "matcher": "Write",
+        "command": "bun .cursor/hooks/deny.ts"
+      }
+    ]
+  }
+}
