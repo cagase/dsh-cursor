@@ -1,4 +1,4 @@
-import type { Context } from '@deepseek-ai/cordis';
+import type { HostContext } from './types.js';
 export declare const name = "dsh-cursor";
 /** Soft deps: activate even if a minimal profile omitted one of these. */
 export declare const inject: readonly [];
@@ -36,13 +36,6 @@ export declare const DEFAULT_CONFIG: {
     readonly maxHookOutputChars: 10000;
     readonly mcpToolCallTimeoutMs: 120000;
 };
-export declare function apply(ctx: Context | import('./types.js').HostContext, config?: DshCursorConfig): void;
-export { PROVIDER_NAME } from './skills/provider.js';
+export declare function apply(ctx: HostContext, config?: DshCursorConfig): void;
 export { PROVIDER_ID } from './models/adapter.js';
-export { userCursorDir, projectCursorDir, findRepoRoot } from './roots.js';
-export { matchGlob } from './util.js';
-export { classifyRule } from './rules/index.js';
-export { evaluateCursorPermissions } from './permissions.js';
-export { matcherHits } from './hooks/run.js';
-export { registerCursorAdapter, CursorLlmAdapter } from './models/adapter.js';
-export { wireCursorModel, parseCursorModelId, probeCursorCli } from './models/cli.js';
+export { registerCursorAdapter } from './models/adapter.js';
