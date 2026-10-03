@@ -57,6 +57,17 @@ process.exit(0)
   process.env.CURSOR_AGENT_BIN = denied
   const loggedOut = await cli.probeCursorCli()
   assert(loggedOut.authenticated === false && loggedOut.code === cli.AUTH_CODE, `explicit logout was ignored: ${JSON.stringify(loggedOut)}`)
+
+  const hint = cli.classifyCliFailure('Error: cannot use this model. Run `agent login`. Available models: grok-4.7')
+  assert(hint?.code === cli.INVALID_ARGS_CODE, `agent login remediation hid the model error: ${JSON.stringify(hint)}`)
+  const advice = join(root, 'advice-agent.mjs')
+  await writeFile(advice, '#!/usr/bin/env node\nprocess.stderr.write("run agent login to continue\\n")\nprocess.exit(0)\n')
+  await chmod(advice, 0o755)
+  process.env.CURSOR_AGENT_BIN = advice
+  process.env.CURSOR_API_KEY = 'present-key'
+  const advised = await cli.probeCursorCli()
+  assert(advised.authenticated === true, `env key lost to login advice: ${JSON.stringify(advised)}`)
+
   const sleeper = join(root, 'sleep-agent.mjs')
   await writeFile(sleeper, '#!/usr/bin/env node\nsetInterval(() => {}, 1000)\n')
   await chmod(sleeper, 0o755)
