@@ -293,7 +293,7 @@ export class CursorLlmAdapter {
       const translator = new StreamChunkTranslator()
       let sawError: { message: string; code: string } | undefined
       for await (const event of streamAgentTurn(probe.bin, wire, turn, {
-        cwd: process.cwd(),
+        cwd: options.cwd ?? process.cwd(),
         signal: options.signal,
       })) {
         const failure = eventFailure(event)

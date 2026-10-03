@@ -612,6 +612,19 @@ function isSessionInUse(detail: string): boolean {
   return /already in use/i.test(detail)
 }
 
+function isMissingChat(detail: string): boolean {
+  const lower = detail.toLowerCase()
+  return (
+    lower.includes('session not found')
+    || lower.includes('no session found')
+    || lower.includes('no such session')
+    || lower.includes('chat not found')
+    || lower.includes('session does not exist')
+    || lower.includes('unknown session')
+    || (lower.includes('resume') && lower.includes('not found'))
+  )
+}
+
 async function* attemptAgentTurn(
   bin: string,
   args: readonly string[],
@@ -696,12 +709,24 @@ export async function* streamAgentTurn(
     && turn.plan.session.id
     && isSessionInUse(first.stderr)
   ) {
-    const resumed: AgentTurnPlan = { ...turn.plan, session: { mode: 'resume', id: turn.plan.session.id } }
+    const resumeText = turn.plan.resumePositional
+    const resumed: AgentTurnPlan = {
+      ...turn.plan,
+      positional: resumeText !== undefined && resumeText !== '' ? resumeText : turn.plan.positional,
+      session: { mode: 'resume', id: turn.plan.session.id },
+      bootstrap: false,
+    }
+    turn.plan = resumed
     const second = yield* attemptAgentTurn(bin, buildAgentArgs(wireModel, resumed, options.cwd), options)
     if (second.failure) yield { type: 'error', error: second.failure.message, done: true, success: false }
     return
   }
-  if (first.failure && turn.plan.session.mode === 'resume' && turn.plan.reanchor) {
+  if (
+    first.failure
+    && turn.plan.session.mode === 'resume'
+    && turn.plan.reanchor
+    && isMissingChat(`${first.stderr}\n${first.failure.message}`)
+  ) {
     const fresh = turn.plan.reanchor()
     turn.plan = fresh
     const second = yield* attemptAgentTurn(bin, buildAgentArgs(wireModel, fresh, options.cwd), options)
