@@ -44,21 +44,55 @@ export function matcherHits(matcher: string | undefined, value: string | undefin
   }
 }
 
+const MAX_HOOK_CAPTURE_CHARS = 1_048_576
+
 export async function runEventHooks(spec: HookRunSpec, logger: PluginLogger): Promise<HookOutcome[]> {
   const outcomes: HookOutcome[] = []
   for (const group of spec.groups) {
     if (!matcherHits(group.matcher, spec.matchedValue)) continue
     for (const hook of group.hooks) {
       if (!matcherHits(hook.matcher, spec.matchedValue)) continue
-      outcomes.push(await runCommandHook(hook, spec, logger))
+      outcomes.push(await runCommandHook(hook, spec, logger, group.cwd))
     }
   }
   return outcomes
 }
 
-async function runCommandHook(hook: CommandHook, spec: HookRunSpec, logger: PluginLogger): Promise<HookOutcome> {
+function commandUsesHookDir(command: string): boolean {
+  return /(^|\s)(?:\.\.?\/|\.[A-Za-z0-9_])/.test(command.trim())
+}
+
+function resolveHookCwd(command: string, hookDir: string | undefined, sessionCwd: string): string {
+  if (hookDir !== undefined && hookDir.trim() !== '' && commandUsesHookDir(command)) return hookDir
+  return sessionCwd
+}
+
+function appendCapped(current: string, chunk: string): string {
+  if (current.length >= MAX_HOOK_CAPTURE_CHARS) return current
+  const next = current + chunk
+  return next.length <= MAX_HOOK_CAPTURE_CHARS ? next : next.slice(0, MAX_HOOK_CAPTURE_CHARS)
+}
+
+function skippedHook(hook: CommandHook): HookOutcome {
+  return {
+    ran: false,
+    command: hook.command,
+    exitCode: null,
+    stdout: '',
+    stderr: '',
+    failClosed: hook.failClosed === true,
+  }
+}
+
+async function runCommandHook(
+  hook: CommandHook,
+  spec: HookRunSpec,
+  logger: PluginLogger,
+  hookDir?: string,
+): Promise<HookOutcome> {
+  if (spec.signal?.aborted) return skippedHook(hook)
   const timeoutMs = hook.timeout ?? spec.defaultTimeoutMs
-  const cwd = spec.cwd
+  const cwd = resolveHookCwd(hook.command, hookDir, spec.cwd)
   return await new Promise((resolve) => {
     let settled = false
     const child = spawn(hook.command, {
@@ -71,10 +105,10 @@ async function runCommandHook(hook: CommandHook, spec: HookRunSpec, logger: Plug
     let stdout = ''
     let stderr = ''
     child.stdout?.on('data', (chunk: Buffer) => {
-      stdout += chunk.toString('utf8')
+      stdout = appendCapped(stdout, chunk.toString('utf8'))
     })
     child.stderr?.on('data', (chunk: Buffer) => {
-      stderr += chunk.toString('utf8')
+      stderr = appendCapped(stderr, chunk.toString('utf8'))
     })
     const finish = (exitCode: number | null) => {
       if (settled) return
