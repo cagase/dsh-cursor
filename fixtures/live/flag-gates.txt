@@ -1,0 +1,41 @@
+############ flag gating without --print ############
+### captured: 2026-10-03T02:14:04Z
+=== agent --single-turn 'hi'  (no --print) ===
+Hi — what do you want to work on?
+exit=0
+
+=== agent --printenv 'hi'  (no --print) ===
+Hi — what do you want to work on?
+exit=0
+
+=== agent --background-shell-timeout 5 'hi'  (no --print) ===
+Hi — what can I help you with?
+exit=0
+
+=== agent --conversation-history-file /tmp/h.json 'hi'  (no --print) ===
+Invalid conversation history: ENOENT: no such file or directory, open '/tmp/h.json'
+exit=0
+
+############ --allowed-tools validation error ############
+=== agent --print --trust --allowed-tools bogus 'hi' ===
+Invalid --allowed-tools value(s): bogus. Expected one of: shell_tool_call, delete_tool_call, glob_tool_call, grep_tool_call, read_tool_call, update_todos_tool_call, read_todos_tool_call, edit_tool_call, ls_tool_call, read_lints_tool_call, mcp_tool_call, sem_search_tool_call, create_plan_tool_call, web_search_tool_call, task_tool_call, list_mcp_resources_tool_call, read_mcp_resource_tool_call, apply_agent_diff_tool_call, ask_question_tool_call, fetch_tool_call, switch_mode_tool_call, generate_image_tool_call, record_screen_tool_call, computer_use_tool_call, write_shell_stdin_tool_call, reflect_tool_call, setup_vm_environment_tool_call, truncated_tool_call, start_grind_execution_tool_call, start_grind_planning_tool_call, web_fetch_tool_call, report_bugfix_results_tool_call, ai_attribution_tool_call, pr_management_tool_call, mcp_auth_tool_call, await_tool_call, blame_by_file_path_tool_call, get_mcp_tools_tool_call, report_bug_tool_call, set_active_branch_tool_call, communicate_update_tool_call, send_final_summary_tool_call, update_pr_code_tour_tool_call, replace_env_tool_call, edit_pr_labels_tool_call, record_ci_investigation_findings_tool_call, send_message_tool_call, fetch_cloud_agent_data_tool_call, send_to_user_tool_call, pi_read_tool_call, pi_bash_tool_call, pi_edit_tool_call, pi_write_tool_call, pi_grep_tool_call, pi_find_tool_call, pi_ls_tool_call, connect_scm_tool_call, search_conversations_tool_call, create_goal_tool_call, update_goal_tool_call, adopt_tool_call, get_agent_status_tool_call, send_to_agent_tool_call, read_agent_transcript_tool_call, create_agent_tool_call, stop_agent_tool_call, get_pr_code_tour_tool_call, write_canvas_tool_call, read_canvas_tool_call
+exit=0
+
+=== agent --print --trust --exclude-tools bogus 'hi' ===
+Hi — what do you want to work on?
+exit=0
+
+############ agent about --format json ############
+{
+  "cliVersion": "2026.10.01-e373342",
+  "latestStatus": "up_to_date",
+  "latestVersion": "2026.10.01-e373342",
+  "model": "Grok 4.5 High",
+  "subscriptionTier": "Ultra",
+  "osPlatform": "darwin",
+  "osArch": "arm64",
+  "userEmail": "the.luis.carbonell@gmail.com",
+  "terminalProgram": "apple-terminal",
+  "shell": "zsh",
+  "lastRequestId": null
+}

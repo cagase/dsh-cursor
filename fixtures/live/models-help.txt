@@ -1,0 +1,9 @@
+### command: agent models --help
+
+Usage: agent models [options]
+
+List available models for this account
+
+Options:
+  -h, --help  Display help for command
+### exit: 0

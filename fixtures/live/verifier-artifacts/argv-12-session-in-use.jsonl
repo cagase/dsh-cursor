@@ -1,0 +1,4 @@
+["status","--format","json"]
+["--list-models"]
+["--print","--output-format","stream-json","--stream-partial-output","--trust","--force","--model","grok-4.7","--workspace","/Users/theluiscarbonell/Projects/cagase/dsh-cursor","--new-session-id","8c96662d-e600-59ac-a22b-fd81f98640dd","<dsh_system_prompt>\nDSH continuity system prompt\n</dsh_system_prompt>\n\n<dsh_user_message>\nq1\n</dsh_user_message>"]
+["--print","--output-format","stream-json","--stream-partial-output","--trust","--force","--model","grok-4.7","--workspace","/Users/theluiscarbonell/Projects/cagase/dsh-cursor","--resume","8c96662d-e600-59ac-a22b-fd81f98640dd","<dsh_system_prompt>\nDSH continuity system prompt\n</dsh_system_prompt>\n\n<dsh_user_message>\nq1\n</dsh_user_message>"]

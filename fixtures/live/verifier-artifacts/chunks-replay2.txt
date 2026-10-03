@@ -1,0 +1,9 @@
+{"type":"block-start","index":0,"blockType":"reasoning"}
+{"type":"reasoning-delta","index":0,"text":"The user requested a"}
+{"type":"reasoning-delta","index":0,"text":" single-word reply: "}
+{"type":"reasoning-delta","index":0,"text":"\"alpha\"."}
+{"type":"block-start","index":1,"blockType":"text"}
+{"type":"text-delta","index":1,"text":"alpha"}
+{"type":"block-end","index":0,"block":{"type":"reasoning","text":"The user requested a single-word reply: \"alpha\"."}}
+{"type":"block-end","index":1,"block":{"type":"text","text":"alpha"}}
+{"type":"finish","reason":{"kind":"stop"}}

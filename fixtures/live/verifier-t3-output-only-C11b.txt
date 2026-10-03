@@ -1,0 +1,18 @@
+t3 verification — 2026-10-03T03:25:00.925Z
+repo=/Users/theluiscarbonell/Projects/cagase/dsh-cursor
+catalog ids=246 nonGrok=224 wireCases=37
+independent Grok matrix from models.txt: {"grok-4.7":{"efforts":["low","medium","high","xhigh"],"fastEfforts":["low","medium","high","xhigh"]},"cursor-grok-4.6":{"efforts":["low","medium","high","xhigh"],"fastEfforts":["low","medium","high","xhigh"]},"cursor-grok-4.5":{"efforts":["low","medium","high"],"fastEfforts":["low","medium","high"]}}
+
+
+live captures: catalog=246 ids sessionIdProbes=5 continuityProbes=5
+FAIL  C11b  offline F1: the minted id is the derived UUIDv4 and the bootstrap turn completes under the live rule
+      spawned argv=["--print","--output-format","stream-json","--stream-partial-output","--trust","--force","--model","grok-4.7-high","--workspace","/Users/theluiscarbonell/Projects/cagase/dsh-cursor","--new-session-id","549d6366-e4df-5389-95d2-b998e11ba8cd","<dsh_system_prompt>\nDSH continuity system prompt\n</dsh_system_prompt>\n\n<dsh_user_message>\nhello\n</dsh_user_message>"]
+      spawnedId=549d6366-e4df-5389-95d2-b998e11ba8cd derived=549d6366-e4df-5389-95d2-b998e11ba8cd uuid4=false
+      chunks=[{"type":"finish","reason":{"kind":"error","failure":{"message":"Error: Invalid --new-session-id \"549d6366-e4df-5389-95d2-b998e11ba8cd\": expected a UUIDv4.","code":"UNKNOWN"}}}]
+      standInState=[{"kind":"new","id":"549d6366-e4df-5389-95d2-b998e11ba8cd","accepted":false,"reason":"not-uuid4"}]
+
+lib under test: /tmp/dsh-cursor-lib-backup (only: C11b)
+SUMMARY: 0/1 checks passed
+  FAILED C11b — offline F1: the minted id is the derived UUIDv4 and the bootstrap turn completes under the live rule
+UNMET CRITERIA: C11b
+CHECKS_JSON [{"id":"C11b","criterion":"offline F1: the minted id is the derived UUIDv4 and the bootstrap turn completes under the live rule","ok":false,"evidence":"spawned argv=[\"--print\",\"--output-format\",\"stream-json\",\"--stream-partial-output\",\"--trust\",\"--force\",\"--model\",\"grok-4.7-high\",\"--workspace\",\"/Users/theluiscarbonell/Projects/cagase/dsh-cursor\",\"--new-session-id\",\"549d6366-e4df-5389-95d2-b998e11ba8cd\",\"<dsh_system_prompt>\\nDSH continuity system prompt\\n</dsh_system_prompt>\\n\\n<dsh_user_message>\\nhello\\n</dsh_user_message>\"]\nspawnedId=549d6366-e4df-5389-95d2-b998e11ba8cd derived=549d6366-e4df-5389-95d2-b998e11ba8cd uuid4=false\nchunks=[{\"type\":\"finish\",\"reason\":{\"kind\":\"error\",\"failure\":{\"message\":\"Error: Invalid --new-session-id \\\"549d6366-e4df-5389-95d2-b998e11ba8cd\\\": expected a UUIDv4.\",\"code\":\"UNKNOWN\"}}}]\nstandInState=[{\"kind\":\"new\",\"id\":\"549d6366-e4df-5389-95d2-b998e11ba8cd\",\"accepted\":false,\"reason\":\"not-uuid4\"}]"}]

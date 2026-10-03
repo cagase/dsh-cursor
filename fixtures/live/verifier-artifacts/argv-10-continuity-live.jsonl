@@ -1,0 +1,7 @@
+["status","--format","json"]
+["--list-models"]
+["--print","--output-format","stream-json","--stream-partial-output","--trust","--force","--model","grok-4.7-medium","--workspace","/Users/theluiscarbonell/Projects/cagase/dsh-cursor","--new-session-id","de66790b-c261-5e6c-8452-da0a958d61e1","<dsh_system_prompt>\nDSH continuity system prompt\n</dsh_system_prompt>\n\n<dsh_user_message>\nfirst question\n</dsh_user_message>"]
+["status","--format","json"]
+["--print","--output-format","stream-json","--stream-partial-output","--trust","--force","--model","grok-4.7-medium","--workspace","/Users/theluiscarbonell/Projects/cagase/dsh-cursor","--resume","de66790b-c261-5e6c-8452-da0a958d61e1","second question"]
+["status","--format","json"]
+["--print","--output-format","stream-json","--stream-partial-output","--trust","--force","--model","grok-4.7-medium","--workspace","/Users/theluiscarbonell/Projects/cagase/dsh-cursor","--new-session-id","ac64f22a-0066-5bfd-aa7d-9997eeeaf5ad","<dsh_system_prompt>\nDSH continuity system prompt\n</dsh_system_prompt>\n\n<dsh_user_message>\nrewritten question\n</dsh_user_message>"]

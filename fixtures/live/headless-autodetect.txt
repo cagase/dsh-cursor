@@ -1,0 +1,108 @@
+############ isTTY ############
+ ${e.name}.`,`${e.attachedClientCount} terminal client${1===e.attachedClientCount?" is":"s are"} still attached.`,"Take over this session and disconnect the other client? [y/N]"].join("\n")),(0,C.Ge)()}function J(e,t={}){const n=(0,C._7)(e);if("absent"===n.kind)return!1;"unavailable"===n.kind&&(0,p.uQ)(1,`Chat ${e} may still be running, but Cursor could not verify its persistent session: ${n.error}`);const r=n.session;!0!==t.print&&process.stdin.isTTY&&process.stdout.isTTY||(0,p.uQ)(1,(0,C.eT)({chatId:e,sessionName:r.name}));const s=r.attachedClientCount>0&&V(r);if(r.attachedClientCount>0&&!s)return(0,p.p2)("The running session was left attached."),!0;try{const e=(0,C.Dy)(r.name,s);return 0!==e&&(0,p.uQ)(e,`Persistent session ${r.name} exited with status ${e}.`),!0}catch(t){const n=(0,C._7)(e);if("absent"===n.kind)return!1;"unavailable"===n.kind&&(0,p.uQ)(1,`Chat ${e} may still be runnin
+  ----
+chedClientCount} terminal client${1===e.attachedClientCount?" is":"s are"} still attached.`,"Take over this session and disconnect the other client? [y/N]"].join("\n")),(0,C.Ge)()}function J(e,t={}){const n=(0,C._7)(e);if("absent"===n.kind)return!1;"unavailable"===n.kind&&(0,p.uQ)(1,`Chat ${e} may still be running, but Cursor could not verify its persistent session: ${n.error}`);const r=n.session;!0!==t.print&&process.stdin.isTTY&&process.stdout.isTTY||(0,p.uQ)(1,(0,C.eT)({chatId:e,sessionName:r.name}));const s=r.attachedClientCount>0&&V(r);if(r.attachedClientCount>0&&!s)return(0,p.p2)("The running session was left attached."),!0;try{const e=(0,C.Dy)(r.name,s);return 0!==e&&(0,p.uQ)(e,`Persistent session ${r.name} exited with status ${e}.`),!0}catch(t){const n=(0,C._7)(e);if("absent"===n.kind)return!1;"unavailable"===n.kind&&(0,p.uQ)(1,`Chat ${e} may still be running, but Cursor could no
+  ----
+,P.hg)(),e||process.exit(0),"chat"===e.kind&&(le=e.id,de=e.cwd)}else if("string"==typeof r.resume){const e=r.resume.match(/^-(\d+)$/);if(e){const t=Number(e[1]),n=Number.isFinite(t)&&t>0?t:1,r=await(0,B.x)(n);r||(0,p.uQ)(1,"No previous chats found."),le=r||void 0}else if("-1"===r.resume){const e=await(0,B.$)();e||(0,p.uQ)(1,"No previous chats found."),le=e}else le=r.resume}if(void 0!==le&&J(le,{print:!0===r.print}))return;const ue=!process.stdin.isTTY,me=Boolean(process.stdout.isTTY),pe=!0===r.print||!me||ue;try{await(0,m.uB)(r.harness)}catch(e){(0,p.uQ)(1,`Error: ${e instanceof Error?e.message:String(e)}`)}const he=(0,T.Ol)({force:!0===r.force,yolo:!0===r.yolo,autoReview:!0===r.autoReview});"conflict"===he.kind&&(0,p.uQ)(1,he.message);const ge="run-everything"===he.kind,fe="auto-review"===he.kind,be=!0===r.approveMcps,ve=ge||be;ce&&!pe&&(0,p.uQ)(1,"Error: --printenv can only be used wit
+  ----
+t"===e.kind&&(le=e.id,de=e.cwd)}else if("string"==typeof r.resume){const e=r.resume.match(/^-(\d+)$/);if(e){const t=Number(e[1]),n=Number.isFinite(t)&&t>0?t:1,r=await(0,B.x)(n);r||(0,p.uQ)(1,"No previous chats found."),le=r||void 0}else if("-1"===r.resume){const e=await(0,B.$)();e||(0,p.uQ)(1,"No previous chats found."),le=e}else le=r.resume}if(void 0!==le&&J(le,{print:!0===r.print}))return;const ue=!process.stdin.isTTY,me=Boolean(process.stdout.isTTY),pe=!0===r.print||!me||ue;try{await(0,m.uB)(r.harness)}catch(e){(0,p.uQ)(1,`Error: ${e instanceof Error?e.message:String(e)}`)}const he=(0,T.Ol)({force:!0===r.force,yolo:!0===r.yolo,autoReview:!0===r.autoReview});"conflict"===he.kind&&(0,p.uQ)(1,he.message);const ge="run-everything"===he.kind,fe="auto-review"===he.kind,be=!0===r.approveMcps,ve=ge||be;ce&&!pe&&(0,p.uQ)(1,"Error: --printenv can only be used with --print/headless mode"),!0!==r
+  ----
+??process.cwd(),Re=r.dataDir?.trim(),_e=void 0!==Re&&Re.length>0?(0,o.resolve)(Re):void 0;if(void 0!==_e&&(process.env.CURSOR_DATA_DIR=_e),(0,E.z)($e,{privacyMode:k.get().privacyCache?.privacyMode}),pe||xe||we){if(!xe&&!we){const e=$e.find((e=>!(0,q.PX)(e)));if(void 0!==e)if(r.trust)try{for(const e of $e)await(0,q.I)(e)}catch{(0,p.uQ)(1,`Error: Failed to trust workspace at ${e}. Please check permissions.`)}else if(ge);else{const t=process.stderr.isTTY,n=t?h.Dk:"",r=t?h.oH:"",s=t?h.Ip:"",o=t?h.Sj:"",a=["",`${n}⚠ Workspace Trust Required${o}`,"","  Cursor Agent can execute code and access files in this directory.","  Do you trust the contents of this directory?","",`    ${r}${e}${o}`,"",`  ${s}To proceed, you can either:${o}`,`    ${s}•${o} Run '${(0,L.mf)()}' interactively to decide`,`    ${s}•${o} Pass ${r}--trust${o}, ${r}--yolo${o}, or ${r}-f${o} if you trust this directory`,""].join("
+  ----
+id}`)}${r}`)}return e.filter((e=>e.isSelectable)).length>1&&(t.push(""),t.push(s.Ay.dim(`Tip: use ${s.Ay.cyan("team switch <id|name>")} to change which team's models and settings apply.`))),t.join("\n")}(m)),process.exit(0)}catch(e){(0,o.p2)(s.Ay.red(`Failed to load teams: ${(0,a.q)(e).message}`)),process.exit(1)}}async function h(e,t,r,l={}){const p=l.format??"text";try{const a=await u(t),l=void 0===r?await async function(e,t){if(!process.stdin.isTTY||!process.stdout.isTTY)return{ok:!1,error:"No team specified. Usage: team switch <id|name>"};const r=t.filter(c);if(0===r.length)return{ok:!1,error:"This account does not belong to any teams with an active plan."};const s=(0,i.C)(e.get()),{pickTeamInteractive:o}=await n.e(1431).then(n.bind(n,"./src/commands/team-picker.tsx")),a=await o(r.map((e=>({id:e.id,name:e.name,isActive:e.id===s.teamId}))));if(null===a)return"cancelled";const l=r.find
+  ----
+
+############ const pe= ############
+current?K(t):0===e&&t===o-1&&K(Math.max(0,o-D)),t}))}else if((0,l.u$)(e,t)){if(0===o)return;Y((e=>{const t=e<o-1?e+1:0;return t>=H.current+D?K(t-D+1):e===o-1&&0===t&&K(0),t}))}else if(!t.tab||t.shift){if(t.return){const e=s[oe.current];if(e){const t=ae.current[e.name]??[];m(e.name,t)}}}else{const e=s[oe.current];e&&(0,c.g1)(e.parameterDefinitions)&&(F(e.name),B(0),_("parameter-editor"))}}),[ue,n,r,m,w,D]);(0,o.Ge)(me,{isActive:"model-list"===R});const pe=(0,a.useCallback)(((e,t)=>{if(ue(e))return;if(t.ctrl&&"c"===e)return void n();if((0,l.xv)(e,t)){const e=re.current,t=e.length,n=null!=N?e.findIndex((e=>e.name===N)):-1;if(n>=0){Y(n);const e=Math.max(0,t-D),r=Math.min(e,Math.max(0,n-Math.floor(D/2)));K(r)}else Y(0),K(0);return F(null),void _("model-list")}const r=de.length,s=(0,l.Po)(e,t),o=(0,l.u$)(e,t);if(0!==r||!s&&!o)if(s)B((e=>e>0?e-1:r-1));else if(o)B((e=>e<r-1?e+1:0));else if(t.ret
+  ----
+ExecuteOnAccept:!0,description:n(),boostedAlts:["zen"],run:async(e,n,r)=>{try{const e=await async function(e){const t="zen"===(e.get().display?.mode??"zen")?"standard":"zen";return await async function(e,t){await e.transform((e=>({...e,display:{...e.display,mode:t}})))}(e,t),t}(t);Te(),r.print?.(["Zen mode "+("zen"===e?"enabled":"disabled")]),qe(),r.insertText("")}catch(e){r.print?.([`Error toggling zen mode: ${String(e)}`]),r.insertText("")}}})}const pe=t.get().display?.showLineNumbers??!1;l.push({id:"line-numbers",title:"Line Numbers",autoExecuteOnAccept:!0,description:`Toggle line numbers in code blocks (currently ${pe?"enabled":"disabled"})`,boostedAlts:["lines","numbers"],run:async(e,n,r)=>{try{const e=await async function(e){const t=e.get(),n=!t.display?.showLineNumbers;return await async function(e,t){await e.transform((e=>({...e,display:{...e.display,showLineNumbers:t}})))}(e,n),
+  ----
+
+############ pe= ############
+kind&&(le=e.id,de=e.cwd)}else if("string"==typeof r.resume){const e=r.resume.match(/^-(\d+)$/);if(e){const t=Number(e[1]),n=Number.isFinite(t)&&t>0?t:1,r=await(0,B.x)(n);r||(0,p.uQ)(1,"No previous chats found."),le=r||void 0}else if("-1"===r.resume){const e=await(0,B.$)();e||(0,p.uQ)(1,"No previous chats found."),le=e}else le=r.resume}if(void 0!==le&&J(le,{print:!0===r.print}))return;const ue=!process.stdin.isTTY,me=Boolean(process.stdout.isTTY),pe=!0===r.print||!me||ue;try{await(0,m.uB)(r.harness)}catch(e){(0,p.uQ)(1,`Error: ${e instanceof Error?e.message:String(e)}`)}const he=(0,T.Ol)({force:!0===r.force,yolo:!0===r.yolo,autoReview:!0===r.autoReview});"conflict"===he.kind&&(0,p.uQ)(1,he.message);const ge="run-everything"===he.kind,fe="auto-review"===he.kind,be=!0===r.approveMcps,ve=ge||be;ce&&!pe&&(0,p.uQ)(1,"Error: --printenv can only be used with --print/headless mode"),!0!==r.single
+  ----
+)((()=>{const e=(0,y.Q)(_,{chromeRows:13+w.G,minRows:1});return Math.min(Math.max(ce.length,1),e)}),[ce.length,_]);(0,l.useEffect)((()=>{F((e=>{const t=Math.max(0,ie.length-1);return Math.min(e,t)}))}),[ie.length]);const de=ie[N]??ie[0],ue=(0,l.useMemo)((()=>ce.findIndex((e=>"field"===e.type&&e.fieldIndex===N))),[N,ce]),me=(0,l.useCallback)((e=>{const t=r?.getParameterizedModels().find((t=>t.name===e));return void 0===t?void 0:(0,v.$L)(t)}),[r]),pe=(0,l.useCallback)(((e,t)=>e.id===b.FU?(0,b.JF)({setting:(0,a.cy)(t),resolveModelLabel:me,includeModelOption:void 0!==r}):I(e,h,(0,b.RB)(t,e))),[h,r,me]),he=(0,l.useMemo)((()=>"enum"!==B?.kind?[]:pe(B,L)),[B,L,pe]),ge=(0,a.cy)(L),fe="object"==typeof ge?ge.modelId:null,be=(0,l.useMemo)((()=>"object"==typeof ge&&void 0!==ge.parameters?{[ge.modelId]:ge.parameters}:void 0),[ge]);(0,l.useEffect)((()=>{"list"!==q||ue<0||O((e=>(0,b.IM)({displayItems:c
+  ----
+),F=(0,d.useRef)(A),z=(0,d.useRef)(_),O=(0,d.useRef)(Y);F.current=A,z.current=_,O.current=Y;const[q,U]=(0,d.useState)("list"),B=r??q,W=(0,d.useCallback)((e=>{l?l(e):U(e)}),[l]),[K,H]=(0,d.useState)(""),[G,Q]=(0,d.useState)(0),[V,J]=(0,d.useState)(""),[X,Z]=(0,d.useState)(""),[ee,te]=(0,d.useState)(""),[ne,re]=(0,d.useState)(""),[se,oe]=(0,d.useState)(0),[ae,ie]=(0,d.useState)(""),[ce,le]=(0,d.useState)(null),[de,ue]=(0,d.useState)(null),me=x??de,pe=(0,d.useCallback)((e=>{S?S(e):ue(e)}),[S]),he=(0,d.useMemo)((()=>me?A.find((e=>e.path===me))??null:null),[me,A]),ge="project"===he?.scope||"user"===he?.scope,[fe,be]=(0,d.useState)(0),[ve,xe]=(0,d.useState)(""),[we,ye]=(0,d.useState)(void 0),ke=M??we,je=(0,d.useCallback)((e=>{E?E(e):ye(e)}),[E]);(0,d.useEffect)((()=>{if(me&&("view"===B||"edit"===B)&&!ae)try{const e=(0,o.readFileSync)(me,"utf-8");ie(e),"edit"===B&&void 0===ke&&je(e)}catch{W("li
+  ----
+aleCompare(t)))}function E({marketplaces:e,pluginsByMarketplaceId:t,installedPlugins:n}){return e.map((e=>{const r=e.id.toString();return{marketplace:e,id:r,displayName:y(e),scope:k(e),pluginCount:t.get(r)?.length??0,installedPluginNames:M({marketplace:e,installedPlugins:n}),lastIndexedLabel:j(e.lastIndexedAt),description:(0,u.Hv)(e.description??""),gitUrl:(0,u.Hv)(e.gitUrl??"")}}))}function I(e){return w.map((t=>({scope:t,rows:e.filter((e=>e.scope===t)).sort(((e,t)=>e.displayName.localeCompare(t.displayName)))}))).filter((e=>e.rows.length>0))}function T(e){return e.flatMap((e=>e.rows))}function P(e,t){const n=e.join(", ");if(n.length<=t)return n;let r="";for(const n of e){const e=r?`${r}, ${n}`:n;if(e.length+5>t)return r?`${r}, ...`:`${n.slice(0,t-3)}...`;r=e}return r}function A(e){const t=e.installedPluginNames.length,n=[`${e.pluginCount} plugin${1===e.pluginCount?"":"s"}`,`${t} instal
+  ----
+t?K(t):0===e&&t===o-1&&K(Math.max(0,o-D)),t}))}else if((0,l.u$)(e,t)){if(0===o)return;Y((e=>{const t=e<o-1?e+1:0;return t>=H.current+D?K(t-D+1):e===o-1&&0===t&&K(0),t}))}else if(!t.tab||t.shift){if(t.return){const e=s[oe.current];if(e){const t=ae.current[e.name]??[];m(e.name,t)}}}else{const e=s[oe.current];e&&(0,c.g1)(e.parameterDefinitions)&&(F(e.name),B(0),_("parameter-editor"))}}),[ue,n,r,m,w,D]);(0,o.Ge)(me,{isActive:"model-list"===R});const pe=(0,a.useCallback)(((e,t)=>{if(ue(e))return;if(t.ctrl&&"c"===e)return void n();if((0,l.xv)(e,t)){const e=re.current,t=e.length,n=null!=N?e.findIndex((e=>e.name===N)):-1;if(n>=0){Y(n);const e=Math.max(0,t-D),r=Math.min(e,Math.max(0,n-Math.floor(D/2)));K(r)}else Y(0),K(0);return F(null),void _("model-list")}const r=de.length,s=(0,l.Po)(e,t),o=(0,l.u$)(e,t);if(0!==r||!s&&!o)if(s)B((e=>e>0?e-1:r-1));else if(o)B((e=>e<r-1?e+1:0));else if(t.return||"
+  ----
+face.tsx"),oe=n("./src/components/prompt/ephemeral-lines-view.tsx"),ae=n("./src/components/prompt/palette-at-list.tsx"),ie=n("./src/components/prompt/palette-slash-list.tsx"),ce=n("./src/components/prompt/pending-decisions-banner.tsx"),le=n("./src/components/prompt/prompt-footer.tsx"),de=n("./src/components/prompt/prompt-help-hints-view.tsx"),ue=n("./src/components/prompt-bar-key-handling.ts"),me=n("./src/components/prompt-bar-overlay-state.ts"),pe=n("./src/components/sudo-password-banner.tsx"),he=n("./src/components/text-input.tsx"),ge=e([c,b,j,D,Y,ee,se,oe,ae,ie,ce,le,de,pe,he]);[c,b,j,D,Y,ee,se,oe,ae,ie,ce,le,de,pe,he]=ge.then?(await ge)():ge;const be=200;function ve(e){return e instanceof Error?e.message:String(e)}const xe=({keyReturn:e,normalizedSelectionsByQuestionId:t,moveNextOrSubmitIfReady:n})=>{e&&n(t)},we=({latestSelectionRef:e,nextSelection:t,onAskQuestionSelectionChange:n})=
+  ----
+
+############ cli-config.json after --model probes ############
+model = {
+  "modelId": "grok-4.5",
+  "displayModelId": "grok-4.5",
+  "displayName": "Grok 4.5 High",
+  "displayNameShort": "Grok 4.5 High",
+  "aliases": [],
+  "maxMode": false
+}
+hasChangedDefaultModel = true
+selectedModel = {
+  "modelId": "grok-4.5",
+  "parameters": [
+    {
+      "id": "effort",
+      "value": "high"
+    },
+    {
+      "id": "fast",
+      "value": "false"
+    }
+  ]
+}
+maxMode = false
+modelParameters = {
+  "default": [],
+  "grok-4.6": [
+    {
+      "id": "effort",
+      "value": "high"
+    },
+    {
+      "id": "fast",
+      "value": "false"
+    }
+  ],
+  "composer-2.5": [
+    {
+      "id": "fast",
+      "value": "false"
+    }
+  ],
+  "grok-4.7": [
+    {
+      "id": "context",
+      "value": "256k"
+    },
+    {
+      "id": "reasoning_effort",
+      "value": "high"
+    },
+    {
+      "id": "fast",
+      "value": "true"
+    }
+  ],
+  "grok-4.5": [
+    {
+      "id": "effort",
+      "value": "high"
+    },
+    {
+      "id": "fast",
+      "value": "false"
+    }
+  ]
+}
+modelSelectionHistory = [
+  "grok-4.5",
+  "grok-4.6",
+  "grok-4.7",
+  "default",
+  "composer-2.5"
+]

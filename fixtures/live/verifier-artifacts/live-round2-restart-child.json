@@ -1,0 +1,160 @@
+{
+  "startedAt": "2026-10-03T03:27:12.457Z",
+  "mode": "child",
+  "repo": "/Users/theluiscarbonell/Projects/cagase/dsh-cursor",
+  "bin": "/Users/theluiscarbonell/.local/bin/agent",
+  "wrapper": "/Users/theluiscarbonell/Projects/cagase/dsh-cursor/fixtures/live/verifier-live-agent-wrapper.sh",
+  "keys": {
+    "adapterBootstrap": "LIVE-T8-F1",
+    "directProbe": "LIVE-T8-F1-DIRECT",
+    "absentStore": "LIVE-T8-F2-ABSENT",
+    "restart": "LIVE-T8-F2-RESTART"
+  },
+  "derived": {
+    "adapterBootstrap": "4528ad23-8d33-4b1c-b193-12f9d419d30a",
+    "directProbe": "8d74204b-d105-4202-9f18-a6bebd36b4d8",
+    "absentStore": "fa9410c8-a280-4024-9249-147a59d1836b",
+    "restart": "76dffd0e-5aae-488e-8d12-a6689a16711b"
+  },
+  "mintedIdDirect": null,
+  "scenarios": {
+    "restartChild": {
+      "derivedId": "76dffd0e-5aae-488e-8d12-a6689a16711b",
+      "argvs": [
+        [
+          "--print",
+          "--output-format",
+          "stream-json",
+          "--stream-partial-output",
+          "--trust",
+          "--force",
+          "--model",
+          "grok-4.7-high",
+          "--workspace",
+          "/Users/theluiscarbonell/Projects/cagase/dsh-cursor",
+          "--new-session-id",
+          "76dffd0e-5aae-488e-8d12-a6689a16711b",
+          "<dsh_system_prompt>\nYou are the t8 live verification harness. Follow the user instruction exactly and answer in as few words as possible.\n</dsh_system_prompt>\n\n<dsh_conversation_history>\nUser: Remember this sentence: the spare key is under the blue pot. Reply with just OK.\n\nAssistant: OK\n</dsh_conversation_history>\n\n<dsh_user_message>\nName one item in that sentence. Reply with just the item.\n</dsh_user_message>"
+        ],
+        [
+          "--print",
+          "--output-format",
+          "stream-json",
+          "--stream-partial-output",
+          "--trust",
+          "--force",
+          "--model",
+          "grok-4.7-high",
+          "--workspace",
+          "/Users/theluiscarbonell/Projects/cagase/dsh-cursor",
+          "--resume",
+          "76dffd0e-5aae-488e-8d12-a6689a16711b",
+          "<dsh_system_prompt>\nYou are the t8 live verification harness. Follow the user instruction exactly and answer in as few words as possible.\n</dsh_system_prompt>\n\n<dsh_conversation_history>\nUser: Remember this sentence: the spare key is under the blue pot. Reply with just OK.\n\nAssistant: OK\n</dsh_conversation_history>\n\n<dsh_user_message>\nName one item in that sentence. Reply with just the item.\n</dsh_user_message>"
+        ]
+      ],
+      "chunks": [
+        {
+          "type": "block-start",
+          "index": 0,
+          "blockType": "reasoning"
+        },
+        {
+          "type": "reasoning-delta",
+          "index": 0,
+          "text": "I am following the verification"
+        },
+        {
+          "type": "reasoning-delta",
+          "index": 0,
+          "text": " harness instructions."
+        },
+        {
+          "type": "reasoning-delta",
+          "index": 0,
+          "text": "\n\nThe item is key."
+        },
+        {
+          "type": "block-start",
+          "index": 1,
+          "blockType": "text"
+        },
+        {
+          "type": "text-delta",
+          "index": 1,
+          "text": "spare"
+        },
+        {
+          "type": "text-delta",
+          "index": 1,
+          "text": " key"
+        },
+        {
+          "type": "block-end",
+          "index": 0,
+          "block": {
+            "type": "reasoning",
+            "text": "I am following the verification harness instructions.\n\nThe item is key."
+          }
+        },
+        {
+          "type": "block-end",
+          "index": 1,
+          "block": {
+            "type": "text",
+            "text": "spare key"
+          }
+        },
+        {
+          "type": "finish",
+          "reason": {
+            "kind": "stop"
+          }
+        }
+      ],
+      "text": "spare key",
+      "finishes": [
+        {
+          "type": "finish",
+          "reason": {
+            "kind": "stop"
+          }
+        }
+      ]
+    }
+  },
+  "cleanup": {},
+  "errors": [],
+  "finishedAt": "2026-10-03T03:27:18.879Z",
+  "argv": [
+    [
+      "--print",
+      "--output-format",
+      "stream-json",
+      "--stream-partial-output",
+      "--trust",
+      "--force",
+      "--model",
+      "grok-4.7-high",
+      "--workspace",
+      "/Users/theluiscarbonell/Projects/cagase/dsh-cursor",
+      "--new-session-id",
+      "76dffd0e-5aae-488e-8d12-a6689a16711b",
+      "<dsh_system_prompt>\nYou are the t8 live verification harness. Follow the user instruction exactly and answer in as few words as possible.\n</dsh_system_prompt>\n\n<dsh_conversation_history>\nUser: Remember this sentence: the spare key is under the blue pot. Reply with just OK.\n\nAssistant: OK\n</dsh_conversation_history>\n\n<dsh_user_message>\nName one item in that sentence. Reply with just the item.\n</dsh_user_message>"
+    ],
+    [
+      "--print",
+      "--output-format",
+      "stream-json",
+      "--stream-partial-output",
+      "--trust",
+      "--force",
+      "--model",
+      "grok-4.7-high",
+      "--workspace",
+      "/Users/theluiscarbonell/Projects/cagase/dsh-cursor",
+      "--resume",
+      "76dffd0e-5aae-488e-8d12-a6689a16711b",
+      "<dsh_system_prompt>\nYou are the t8 live verification harness. Follow the user instruction exactly and answer in as few words as possible.\n</dsh_system_prompt>\n\n<dsh_conversation_history>\nUser: Remember this sentence: the spare key is under the blue pot. Reply with just OK.\n\nAssistant: OK\n</dsh_conversation_history>\n\n<dsh_user_message>\nName one item in that sentence. Reply with just the item.\n</dsh_user_message>"
+    ]
+  ]
+}

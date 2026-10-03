@@ -1,0 +1,294 @@
+# t6 pre-repair evidence — which suite checks the broken product fails
+
+Generated: 2026-10-03T03:07:02Z
+Harness: fixtures/live/t6-prerepair-probe.mjs (drives the BUILT adapter through fixtures/live/fake-agent.sh,
+which enforces the live UUIDv4 rule and the live silent-fresh-resume rule; HOME is a scratch dir).
+
+## Variants
+
+| variant | lib/ | what it isolates |
+| --- | --- | --- |
+| V1 | /tmp/t6-prerepair-lib (built lib before the repair, exactly what t3 tested) | F1 + F2 as shipped |
+| V2 | V1 with only the version nibble forced to '4' (`sed` on lib/models/session.js) | F2 alone |
+| V3 | the repaired `lib/` | both fixed |
+| V4 | repaired `lib/` with only the adapter's chat-store probe removed | the F2 suite check |
+| V5 | repaired `lib/` with only the version nibble reverted to '5' | the F1 suite check |
+
+## Probe verdicts (P1 minted-id shape, P2 bootstrap turn, P3 dead-resume re-anchor)
+
+```json
+// V1 — pre-repair (as t3 saw it)
+{
+  "P1": {
+    "check": "the minted id for S1#0 is a UUIDv4 the live CLI accepts",
+    "id": "39d32074-6362-53fa-8eb7-84ae8c182d38",
+    "validV4": false,
+    "ok": false
+  },
+  "standIn": {
+    "check": "the stand-in enforces the live UUIDv4 rule",
+    "v5Exit": 1,
+    "v5Stderr": "Error: Invalid --new-session-id \"39d32074-6362-53fa-8eb7-84ae8c182d38\": expected a UUIDv4.",
+    "ok": true
+  },
+  "P2": {
+    "check": "a bootstrap turn completes (stop finish) against a CLI that enforces the UUIDv4 rule",
+    "argv": [
+      "--print",
+      "--output-format",
+      "stream-json",
+      "--stream-partial-output",
+      "--trust",
+      "--force",
+      "--model",
+      "grok-4.7-high",
+      "--workspace",
+      "/Users/theluiscarbonell/Projects/cagase/dsh-cursor",
+      "--new-session-id",
+      "1b9c8589-6f92-593a-a0f5-5c364b8ab5d6",
+      "<dsh_system_prompt>\nProbe system prompt.\n</dsh_system_prompt>\n\n<dsh_user_message>\nbootstrap probe\n</dsh_user_message>"
+    ],
+    "mintedId": "1b9c8589-6f92-593a-a0f5-5c364b8ab5d6",
+    "finishKind": "error",
+    "finishFailure": {
+      "message": "Error: Invalid --new-session-id \"1b9c8589-6f92-593a-a0f5-5c364b8ab5d6\": expected a UUIDv4.",
+      "code": "UNKNOWN"
+    },
+    "storeCreated": false,
+    "ok": false
+  },
+  "P3": {
+    "check": "with the chat store absent, the same session re-anchors (--new-session-id + full DSH context) instead of resuming",
+    "first": {
+      "argv": [
+        "--print",
+        "--output-format",
+        "stream-json",
+        "--stream-partial-output",
+        "--trust",
+        "--force",
+        "--model",
+        "grok-4.7-high",
+        "--workspace",
+        "/Users/theluiscarbonell/Projects/cagase/dsh-cursor",
+        "--new-session-id",
+        "73d4eac5-b69b-599d-80ed-60b06a1f0ed0",
+        "<dsh_system_prompt>\nProbe dead-resume system prompt.\n</dsh_system_prompt>\n\n<dsh_user_message>\nRemember AUBERGINE-77. Reply OK.\n</dsh_user_message>"
+      ],
+      "finishKind": "error"
+    },
+    "second": {
+      "argv": [
+        "--print",
+        "--output-format",
+        "stream-json",
+        "--stream-partial-output",
+        "--trust",
+        "--force",
+        "--model",
+        "grok-4.7-high",
+        "--workspace",
+        "/Users/theluiscarbonell/Projects/cagase/dsh-cursor",
+        "--new-session-id",
+        "33b04911-eda6-51a6-a888-a39512ab3c7e",
+        "<dsh_system_prompt>\nProbe dead-resume system prompt.\n</dsh_system_prompt>\n\n<dsh_conversation_history>\nUser: Remember AUBERGINE-77. Reply OK.\n\nAssistant: OK\n</dsh_conversation_history>\n\n<dsh_us
+```
+
+```json
+// V2 — pre-repair + F1 version-nibble fix only
+{
+  "P1": {
+    "check": "the minted id for S1#0 is a UUIDv4 the live CLI accepts",
+    "id": "39d32074-6362-43fa-8eb7-84ae8c182d38",
+    "validV4": true,
+    "ok": true
+  },
+  "P2": {
+    "check": "a bootstrap turn completes (stop finish) against a CLI that enforces the UUIDv4 rule",
+    "argv": [
+      "--print",
+      "--output-format",
+      "stream-json",
+      "--stream-partial-output",
+      "--trust",
+      "--force",
+      "--model",
+      "grok-4.7-high",
+      "--workspace",
+      "/Users/theluiscarbonell/Projects/cagase/dsh-cursor",
+      "--new-session-id",
+      "1b9c8589-6f92-493a-a0f5-5c364b8ab5d6",
+      "<dsh_system_prompt>\nProbe system prompt.\n</dsh_system_prompt>\n\n<dsh_user_message>\nbootstrap probe\n</dsh_user_message>"
+    ],
+    "mintedId": "1b9c8589-6f92-493a-a0f5-5c364b8ab5d6",
+    "finishKind": "stop",
+    "finishFailure": null,
+    "storeCreated": true,
+    "ok": true
+  },
+  "P3": {
+    "check": "with the chat store absent, the same session re-anchors (--new-session-id + full DSH context) instead of resuming",
+    "first": {
+      "argv": [
+        "--print",
+        "--output-format",
+        "stream-json",
+        "--stream-partial-output",
+        "--trust",
+        "--force",
+        "--model",
+        "grok-4.7-high",
+        "--workspace",
+        "/Users/theluiscarbonell/Projects/cagase/dsh-cursor",
+        "--new-session-id",
+        "73d4eac5-b69b-499d-80ed-60b06a1f0ed0",
+        "<dsh_system_prompt>\nProbe dead-resume system prompt.\n</dsh_system_prompt>\n\n<dsh_user_message>\nRemember AUBERGINE-77. Reply OK.\n</dsh_user_message>"
+      ],
+      "finishKind": "stop"
+    },
+    "second": {
+      "argv": [
+        "--print",
+        "--output-format",
+        "stream-json",
+        "--stream-partial-output",
+        "--trust",
+        "--force",
+        "--model",
+        "grok-4.7-high",
+        "--workspace",
+        "/Users/theluiscarbonell/Projects/cagase/dsh-cursor",
+        "--resume",
+        "73d4eac5-b69b-499d-80ed-60b06a1f0ed0",
+        "What codeword? Reply with it or UNKNOWN."
+      ],
+      "resumedId": "73d4eac5-b69b-499d-80ed-60b06a1f0ed0",
+      "reanchoredId": null,
+      "finishKind": "stop",
+      "payloadHasSystem": false,
+      "payloadHasPriorTurn": false
+    },
+    "checkpointEstablished": true,
+    "ok": false
+  }
+}
+```
+
+```json
+// V3 — repaired
+{
+  "P1": {
+    "check": "the minted id for S1#0 is a UUIDv4 the live CLI accepts",
+    "id": "39d32074-6362-43fa-8eb7-84ae8c182d38",
+    "validV4": true,
+    "ok": true
+  },
+  "P2": {
+    "check": "a bootstrap turn completes (stop finish) against a CLI that enforces the UUIDv4 rule",
+    "argv": [
+      "--print",
+      "--output-format",
+      "stream-json",
+      "--stream-partial-output",
+      "--trust",
+      "--force",
+      "--model",
+      "grok-4.7-high",
+      "--workspace",
+      "/Users/theluiscarbonell/Projects/cagase/dsh-cursor",
+      "--new-session-id",
+      "1b9c8589-6f92-493a-a0f5-5c364b8ab5d6",
+      "<dsh_system_prompt>\nProbe system prompt.\n</dsh_system_prompt>\n\n<dsh_user_message>\nbootstrap probe\n</dsh_user_message>"
+    ],
+    "mintedId": "1b9c8589-6f92-493a-a0f5-5c364b8ab5d6",
+    "finishKind": "stop",
+    "finishFailure": null,
+    "storeCreated": true,
+    "ok": true
+  },
+  "P3": {
+    "check": "with the chat store absent, the same session re-anchors (--new-session-id + full DSH context) instead of resuming",
+    "first": {
+      "argv": [
+        "--print",
+        "--output-format",
+        "stream-json",
+        "--stream-partial-output",
+        "--trust",
+        "--force",
+        "--model",
+        "grok-4.7-high",
+        "--workspace",
+        "/Users/theluiscarbonell/Projects/cagase/dsh-cursor",
+        "--new-session-id",
+        "73d4eac5-b69b-499d-80ed-60b06a1f0ed0",
+        "<dsh_system_prompt>\nProbe dead-resume system prompt.\n</dsh_system_prompt>\n\n<dsh_user_message>\nRemember AUBERGINE-77. Reply OK.\n</dsh_user_message>"
+      ],
+      "finishKind": "stop"
+    },
+    "second": {
+      "argv": [
+        "--print",
+        "--output-format",
+        "stream-json",
+        "--stream-partial-output",
+        "--trust",
+        "--force",
+        "--model",
+        "grok-4.7-high",
+        "--workspace",
+        "/Users/theluiscarbonell/Projects/cagase/dsh-cursor",
+        "--new-session-id",
+        "33b04911-eda6-41a6-a888-a39512ab3c7e",
+        "<dsh_system_prompt>\nProbe dead-resume system prompt.\n</dsh_system_prompt>\n\n<dsh_conversation_history>\nUser: Remember AUBERGINE-77. Reply OK.\n\nAssistant: OK\n</dsh_conversation_history>\n\n<dsh_user_message>\nWhat codeword? Reply with it or UNKNOWN.\n</dsh_user_message>"
+      ],
+      "resumedId": null,
+      "reanchoredId": "33b04911-eda6-41a6-a888-a39512ab3c7e",
+      "finishKind": "stop",
+      "payloadHasSystem": true,
+      "payloadHasPriorTurn": true
+    },
+    "checkpointEstablished": true,
+    "ok": true
+  }
+}
+```
+
+## Suite results (`node scripts/verify-models.mjs`)
+
+```text
+$ cd <repo copy with V1 lib> && node scripts/verify-models.mjs   # exit 1
+file:///private/tmp/t6-repo-a/scripts/verify-models.mjs:27
+  if (!cond) throw new Error(message)
+                   ^
+
+
+$ cd <repo copy with V4 lib> && node scripts/verify-models.mjs   # exit 1
+file:///private/tmp/t6-repo-f2off/scripts/verify-models.mjs:27
+  if (!cond) throw new Error(message)
+                   ^
+
+
+$ cd <repo copy with V5 lib> && node scripts/verify-models.mjs   # exit 1
+file:///private/tmp/t6-repo-f1off/scripts/verify-models.mjs:27
+  if (!cond) throw new Error(message)
+                   ^
+
+
+$ node scripts/verify-models.mjs   # repaired lib, exit 0
+verify-models: ok
+```
+
+## Which check fails against the pre-repair code
+
+1. **F1 — `minted id for sess-1#0 is not a UUIDv4: b13dca04-670b-55bd-b5b5-b45d62221b30`.**
+   The pre-repair `sessionUuidFor` (V1/V5) emits a version-5 UUID; the suite's first session check
+   asserts the RFC 4122 v4 shape, and the stand-in then rejects that id exactly like the live CLI
+   (`Error: Invalid --new-session-id "…": expected a UUIDv4.`), so `P2` (a bootstrap turn) ends in
+   an error finish. V3 passes both.
+2. **F2 — `a missing chat store must re-anchor a fresh CLI session`.**
+   V4 (repaired id, no store probe) keeps `mode:'resume'`: `P3` shows the second turn resuming the
+   deleted chat (`--resume 73d4eac5-…`) with a payload that carries neither the system prompt nor
+   the prior turn — the silent context loss t3 proved live. V3 instead mints a new id
+   (`--new-session-id 33b04911-eda6-41a6-…`) and re-delivers the full DSH context.
+

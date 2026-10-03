@@ -1,0 +1,19 @@
+############ conversation-history parse probes ############
+### captured: 2026-10-03T02:17:20Z
+=== U1) type error inside user.text.text (proves the user/text path is parsed) ===
+Invalid conversation history: cannot decode field agent.v1.ConversationHistoryTextContent.text from JSON: 123
+exit=1
+
+=== V1) fact stated in history (assistant echoes it), then ask for the codeword ===
+I don't have one. This conversation didn't include a codeword to remember.
+exit=0
+
+=== V2) 4-message history, ask to repeat the number ===
+You haven't told me a number in this conversation.
+exit=0
+
+=== V3) same as V1 but with claude-opus-4-8-high ===
+I don't see any codeword in the context I've been given. There's no codeword defined in your query, the system instructions, or the workspace information available to me.
+
+If there's a specific file or location where a codeword should be stored, let me know where to look and I'll check it.
+exit=0

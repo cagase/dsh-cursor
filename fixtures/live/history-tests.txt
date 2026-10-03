@@ -1,0 +1,45 @@
+############ --conversation-history-file ############
+### captured: 2026-10-03T02:15:47Z
+### fixture: fixtures/live/history-example.json
+{
+  "messages": [
+    {
+      "user": {
+        "content": [
+          { "text": { "text": "Remember this codeword: PLATYPUS-7731. Reply with just: OK" } }
+        ]
+      }
+    },
+    {
+      "assistant": {
+        "content": [
+          { "text": { "text": "OK" } }
+        ]
+      }
+    }
+  ]
+}
+
+=== H1) continuity: history file carried in, turn-2 question asks for the codeword ===
+I don't have one. This conversation didn't include a codeword to remember.
+exit=0
+
+=== H2) control: identical prompt, NO history file (fresh session) ===
+I don't have one. This conversation didn't include a codeword to remember.
+exit=0
+
+=== H3) malformed (non-JSON) history file ===
+Invalid conversation history: cannot decode agent.v1.ConversationHistory from JSON: Unexpected token 'o', "not json at all" is not valid JSON
+exit=1
+
+=== H4) valid JSON, invalid tool-call argsJson ===
+Invalid conversation history: Invalid args for tool call call_1: Expected property name or '}' in JSON at position 1 (line 1 column 2)
+exit=1
+
+=== H5) empty JSON object {} (no messages) ===
+OK
+exit=0
+
+=== H6) wrong shape: top-level array ===
+Invalid conversation history: cannot decode message agent.v1.ConversationHistory from JSON: array
+exit=1

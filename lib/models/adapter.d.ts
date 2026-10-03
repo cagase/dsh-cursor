@@ -1,39 +1,7 @@
 import type { HostContext, PluginLogger } from '../types.js';
+import { renderAgentContext, type CursorGenerateOptions } from './session.js';
 export declare const PROVIDER_ID = "cursor";
-declare const REASONING_EFFORTS: readonly [{
-    readonly id: "low";
-    readonly name: "Low";
-}, {
-    readonly id: "high";
-    readonly name: "High";
-}, {
-    readonly id: "xhigh";
-    readonly name: "Extra High";
-    readonly description: "Maps to Cursor CLI effort=max";
-}];
-export interface CursorContentBlock {
-    type: string;
-    text?: string;
-    name?: string;
-    arguments?: string;
-    content?: CursorContentBlock[];
-    toolCallId?: string;
-}
-export interface CursorMessage {
-    role: string;
-    content: readonly CursorContentBlock[] | string;
-}
-export interface CursorGenerateOptions {
-    provider: string;
-    model: string;
-    reasoningEffort?: string;
-    messages: readonly CursorMessage[];
-    system?: string;
-    tools?: readonly {
-        name: string;
-    }[];
-    signal?: AbortSignal;
-}
+export type { CursorContentBlock, CursorGenerateOptions, CursorMessage } from './session.js';
 export interface CursorStreamChunk {
     type: 'block-start' | 'text-delta' | 'reasoning-delta' | 'block-end' | 'finish';
     index?: number;
@@ -58,16 +26,33 @@ export interface CursorModelInfo {
     description?: string;
     inputModalities?: readonly ['text'];
 }
+export interface CursorEffortInfo {
+    id: string;
+    name: string;
+    description?: string;
+}
 export interface CursorResolvedModelInfo extends CursorModelInfo {
-    reasoning: {
-        efforts: typeof REASONING_EFFORTS;
-        defaultEffort?: 'high';
+    reasoning?: {
+        efforts: readonly CursorEffortInfo[];
+        defaultEffort?: string;
     };
 }
-export declare function flattenGeneratePrompt(options: CursorGenerateOptions): string;
-export declare function expandModelCatalog(slugs: readonly string[], fallback: boolean): CursorModelInfo[];
+/**
+ * Publish the DSH picker catalog.
+ *
+ * Non-Grok models are listed verbatim from the CLI catalog: no renamed entry,
+ * no synthetic suffix and no synthetic effort. Every Grok family gets exactly
+ * one base entry plus its own `<base>-fast` entry (DSH has no boolean model
+ * parameter), both carrying only the efforts whose composed slug exists. The
+ * fallback path (AUTH or a missing binary) keeps the CLI help slugs verbatim
+ * and uses the captured Grok matrix — it never invents an effort or a Fast
+ * entry.
+ */
+export declare function expandModelCatalog(slugs: readonly string[], fallback: boolean, labels?: ReadonlyMap<string, string>): CursorModelInfo[];
 export declare class CursorLlmAdapter {
     private readonly logger?;
+    private readonly sessions;
+    private catalog?;
     constructor(logger?: PluginLogger | undefined);
     providerInfo(provider: string): {
         id: string;
@@ -82,6 +67,12 @@ export declare class CursorLlmAdapter {
         stream: (options: CursorGenerateOptions) => AsyncGenerator<CursorStreamChunk, any, any>;
     }>;
     stream(options: CursorGenerateOptions): AsyncGenerator<CursorStreamChunk>;
+    /** A failed continuation drops its checkpoint so the next turn re-anchors. */
+    private recoverSession;
+    private entryName;
+    /** Slugs the CLI advertises right now, plus the captured Grok vocabulary. */
+    private grokVocabulary;
+    private cacheCatalog;
 }
 export interface LlmLike {
     registerAdapter(providers: string[], adapter: CursorLlmAdapter): {
@@ -100,4 +91,4 @@ export interface LlmLike {
 }
 export declare function registerCursorAdapter(host: HostContext, logger: PluginLogger): void;
 export declare function isCursorGenerateOptions(value: unknown): value is CursorGenerateOptions;
-export {};
+export { renderAgentContext };

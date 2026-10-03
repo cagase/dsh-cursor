@@ -1,0 +1,31 @@
+############ --system-prompt ############
+### captured: 2026-10-03T02:14:41Z
+### file /tmp/sp.txt content:
+IMPORTANT: Begin every reply with the exact token [[SYSPROMPT-OK]] followed by a space. Then answer the user normally.
+
+=== A) agent --print --mode ask --trust --model grok-4.7-xhigh --system-prompt /tmp/sp.txt 'What is the capital of France?' ===
+Connection lost, reconnecting to https://agentn.global.api5.cursor.sh (attempt 1)...
+Retry attempt 1...
+Connection lost, reconnecting to https://agentn.global.api5.cursor.sh (attempt 2)...
+Retry attempt 2...
+Connection lost, reconnecting to https://agentn.global.api5.cursor.sh (attempt 3)...
+Retry attempt 3...
+RetriableError: [invalid_argument] unknown option '--system-prompt'
+exit=1
+
+=== A-control) same prompt WITHOUT --system-prompt ===
+The capital of France is Paris.
+exit=0
+
+=== B) --system-prompt /tmp/sp2.txt + tool-requiring prompt (stream-json, default agent mode) ===
+exit=1
+--- tool_call event types seen ---
+   6 "type":"connection"
+   3 "type":"retry"
+   1 "type":"system"
+   1 "type":"text"
+   1 "type":"user"
+--- first 2 tool_call events (truncated) ---
+grep: invalid repetition count(s)
+--- final result event (truncated) ---
+grep: invalid repetition count(s)

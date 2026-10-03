@@ -1,0 +1,28 @@
+############ headless tool execution + remaining flags ############
+### captured: 2026-10-03T02:24:46Z
+
+=== K1) --force + stream-json --stream-partial-output (tool executes) ===
+exit=0 lines=      42
+event counts: {'system/init': 1, 'user': 1, 'thinking/delta': 9, 'thinking/completed': 2, 'assistant': 26, 'tool_call/started': 1, 'tool_call/completed': 1, 'result/success': 1}
+tool_call/completed tool_call: {"shellToolCall": {"args": {"command": "echo dsh-tool-ok", "workingDirectory": "", "timeout": 30000, "toolCallId": "call-80b7ca88-cf79-4a86-bbdc-0705e1f22c57-0\nfc_5a828346-a5f1-95be-9ca1-966d3b493ab8_0", "simpleCommands": ["echo"], "hasInputRedirect": false, "hasOutputRedirect": false, "parsingResult": {"parsingFailed": false, "executableCommands": [{"name": "echo", "args": [{"type": "word", "value": "dsh-tool-ok"}], "fullText": "echo dsh-tool-ok"}], "hasRedirects": false, "hasCommandSubstituti
+result: "I'll run that command and report the exact output.The command printed:\n\n```\ndsh-tool-ok\n```"
+
+=== K2) stream-json WITHOUT --stream-partial-output (assistant event shape) ===
+exit=0 lines=       8
+assistant event: {"type": "assistant", "message": {"role": "assistant", "content": [{"type": "text", "text": "alpha"}]}, "session_id": "bc35b7fc-795f-4ee1-96f2-ed549a69b12d"}
+
+=== K3) --single-turn with --print ===
+OK
+exit=0
+
+=== K4) --background-shell-timeout 5 with --print ===
+OK
+exit=0
+
+=== K5) event types in the failed --system-prompt stream-json run ===
+event counts: {'system/init': 1, 'user': 1, 'connection/reconnecting': 3, 'retry/starting': 3, 'connection/reconnected': 3}
+-- system/init -> {"type": "system", "subtype": "init", "apiKeySource": "login", "cwd": "/Users/theluiscarbonell/Projects/cagase/dsh-cursor", "session_id": "7b710922-0e62-4878-8d70-c780dae6a464", "model": "Grok 4.7 256K Extra High", "permissionMode": "default"}
+-- user -> {"type": "user", "message": {"role": "user", "content": [{"type": "text", "text": "Use your tools to list the files in the current directory, then answer with the number of files."}]}, "session_id": "7b710922-0e62-4878-8d70-c780dae6a464"}
+-- connection/reconnecting -> {"type": "connection", "subtype": "reconnecting", "session_id": "7b710922-0e62-4878-8d70-c780dae6a464", "timestamp_ms": 1790993722427, "attempt": 1, "endpoint_url": "https://agentn.global.api5.cursor.sh"}
+-- retry/starting -> {"type": "retry", "subtype": "starting", "session_id": "7b710922-0e62-4878-8d70-c780dae6a464", "timestamp_ms": 1790993724620, "attempt": 1, "is_resume": false}
+-- connection/reconnected -> {"type": "connection", "subtype": "reconnected", "session_id": "7b710922-0e62-4878-8d70-c780dae6a464", "timestamp_ms": 1790993724756}

@@ -1,0 +1,3 @@
+{"type":"system","subtype":"init","session_id":"verifier-result-only","model":"Grok 4.7 256K Extra High","permissionMode":"default"}
+{"type":"user","message":{"role":"user","content":[{"type":"text","text":"PROMPT ECHO THAT MUST NEVER APPEAR"}]},"session_id":"verifier-result-only"}
+{"type":"result","subtype":"success","is_error":false,"result":"RESULT-ONLY-TEXT","session_id":"verifier-result-only"}

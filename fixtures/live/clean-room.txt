@@ -1,0 +1,28 @@
+############ clean-room: workspace-context injection + conversation history ############
+### captured: 2026-10-03T02:20:08Z
+
+=== R1) repo (aubergine is in recent local chat transcripts), FRESH chat, --exclude-workspace-context ===
+Connection lost, reconnecting to https://agentn.global.api5.cursor.sh (attempt 1)...
+Retry attempt 1...
+Connection lost, reconnecting to https://agentn.global.api5.cursor.sh (attempt 2)...
+Retry attempt 2...
+Connection lost, reconnecting to https://agentn.global.api5.cursor.sh (attempt 3)...
+Retry attempt 3...
+RetriableError: [invalid_argument] Workspace context exclusion is not allowed for this user, team, or selected model
+exit=1
+
+=== R2) repo, FRESH chat, no flags (control for R1) ===
+UNKNOWN
+exit=0
+
+=== R3) EMPTY workspace /tmp/dshchA + --conversation-history-file (spare-key fact) ===
+UNKNOWN
+exit=0
+
+=== R4) EMPTY workspace /tmp/dshchB, no history file (control for R3) ===
+UNKNOWN
+exit=0
+
+=== R5) /tmp/dshchA again, no history file (does the prior A-session leak into a new A chat?) ===
+UNKNOWN
+exit=0
