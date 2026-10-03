@@ -68,7 +68,6 @@ export function classifyCliFailure(detail: string): { code: string; message: str
     lower.includes('not logged in')
     || lower.includes('unauthenticated')
     || lower.includes('authentication required')
-    || lower.includes('agent login')
     || lower.includes('unauthorized')
   ) {
     return {
@@ -205,16 +204,16 @@ function probeFromStatus(
   status: { authenticated: boolean } | undefined,
 ): CursorCliProbe {
   if (status?.authenticated) return { bin, authenticated: true }
-  const classified = classifyCliFailure(detail)
-  if (status?.authenticated === false || classified?.code === AUTH_CODE) {
+  if (status?.authenticated === false) {
     return {
       bin,
       authenticated: false,
-      error: classified?.message ?? 'Cursor agent CLI is not logged in. Run `agent login`.',
+      error: 'Cursor agent CLI is not logged in. Run `agent login`.',
       code: AUTH_CODE,
     }
   }
   if (hasEnvCredential()) return { bin, authenticated: true }
+  const classified = classifyCliFailure(detail)
   if (classified) return { bin, authenticated: false, error: classified.message, code: classified.code }
   return {
     bin,
