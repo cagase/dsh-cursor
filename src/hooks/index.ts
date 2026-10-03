@@ -130,8 +130,9 @@ export function registerHooks(
       }
       return permissionPre ? permissionPre(exec, next) : next()
     } catch (error) {
-      logger.warn?.(`cursor: preToolUse hooks failed: ${errorMessage(error)}`)
-      return permissionPre ? permissionPre(exec, next) : next()
+      const reason = `cursor preToolUse hooks failed: ${errorMessage(error)}`
+      logger.warn?.(reason)
+      return { kind: 'deny', reason }
     }
   })
 

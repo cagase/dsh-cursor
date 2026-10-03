@@ -5,6 +5,8 @@ import type { CursorSettingsLoader } from './settings.js'
 
 type TokenKind = 'shell' | 'read' | 'write' | 'webfetch' | 'mcp'
 
+let notedApprovalMode = false
+
 interface ParsedToken {
   kind: TokenKind
   pattern: string
@@ -114,7 +116,8 @@ export function createPermissionsGate(
     if (!agent) return next()
     try {
       const settings = await loader.load(agent.session.header.cwd)
-      if (settings.approvalMode) {
+      if (settings.approvalMode && !notedApprovalMode) {
+        notedApprovalMode = true
         logger.warn?.(
           `cursor: cli approvalMode=${JSON.stringify(settings.approvalMode)} is not enforced; DSH owns approval/sandbox`,
         )
@@ -123,8 +126,9 @@ export function createPermissionsGate(
       if (verdict?.kind === 'deny') return { kind: 'deny', reason: verdict.reason }
       return next()
     } catch (error) {
-      logger.warn?.(`cursor: permission rules failed: ${errorMessage(error)}`)
-      return next()
+      const reason = `cursor permission rules failed: ${errorMessage(error)}`
+      logger.warn?.(reason)
+      return { kind: 'deny', reason }
     }
   }
 }
