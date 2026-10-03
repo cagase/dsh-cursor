@@ -57,17 +57,17 @@ assert(!/^\s*-\s*cursor_agent_/m.test(profile), 'teams has no ACP tools')
 
 const probe = await cli.probeCursorCli()
 if (!probe.bin) {
-  console.log('verify-models-live: SKIP (MISSING_CREDENTIAL) — install the Cursor agent CLI, then:')
+  console.log('verify-models-live: FAIL (MISSING_CREDENTIAL) — install the Cursor agent CLI, then:')
   console.log('  agent login')
-  console.log('  npm run verify:models:live')
+  console.log('  npm run verify:live')
   console.log('Human picker/teams commands: fixtures/VERIFY.md')
-  process.exit(0)
+  process.exit(1)
 }
 if (!probe.authenticated) {
-  console.log('verify-models-live: SKIP (AUTH) — run `agent login`, then:')
-  console.log('  npm run verify:models:live')
+  console.log('verify-models-live: FAIL (AUTH) — run `agent login`, then:')
+  console.log('  npm run verify:live')
   console.log('Human picker/teams commands: fixtures/VERIFY.md')
-  process.exit(0)
+  process.exit(1)
 }
 
 const catalog = await cli.listCursorModelCatalog(probe.bin)
