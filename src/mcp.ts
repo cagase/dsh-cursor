@@ -26,11 +26,11 @@ export function sanitizeServerName(name: string): string | undefined {
   return SERVER_NAME_RE.test(cleaned) ? cleaned : undefined
 }
 
-function suffixedServerName(base: string, cwd: string): string | undefined {
-  const tag = createHash('sha1').update(cwd).digest('hex').slice(0, 6)
+function suffixedServerName(base: string, cwd: string, name: string, salt: string): string | undefined {
+  const tag = createHash('sha1').update(`${cwd}\0${name}\0${salt}`).digest('hex').slice(0, 8)
   const stem = base.slice(0, Math.max(1, 32 - tag.length - 1))
-  const name = `${stem}_${tag}`
-  return SERVER_NAME_RE.test(name) ? name : undefined
+  const mount = `${stem}_${tag}`
+  return SERVER_NAME_RE.test(mount) ? mount : undefined
 }
 
 async function readEnvFile(path: string): Promise<Record<string, string>> {
@@ -112,10 +112,14 @@ export function registerMcp(
   toolCallTimeoutMs: number,
 ): void {
   const mounted = new Map<string, { dispose: () => void; fingerprint: string }>()
+  let reconcileGeneration = 0
   const reconcile = async () => {
+    const generation = ++reconcileGeneration
     const wanted: { mountName: string; fingerprint: string; config: Record<string, unknown>; label: string }[] = []
     for (const cwd of liveCwds()) {
+      if (generation !== reconcileGeneration) return
       const settings = await loader.load(cwd)
+      if (generation !== reconcileGeneration) return
       const claimed = new Map<string, string>()
       for (const [name, entry] of settings.mcpServers) {
         const normalized = await normalizeCursorServer(name, entry, cwd, toolCallTimeoutMs)
@@ -132,8 +136,15 @@ export function registerMcp(
         if (wanted.some((item) => item.mountName === normalized.serverName && item.fingerprint === fingerprint)) continue
         let mountName = normalized.serverName
         if (wanted.some((item) => item.mountName === mountName)) {
-          const suffixed = suffixedServerName(normalized.serverName, cwd)
-          if (suffixed === undefined || wanted.some((item) => item.mountName === suffixed)) {
+          let suffixed: string | undefined
+          for (let salt = 0; salt < 8; salt++) {
+            const candidate = suffixedServerName(normalized.serverName, cwd, name, String(salt))
+            if (candidate !== undefined && !wanted.some((item) => item.mountName === candidate)) {
+              suffixed = candidate
+              break
+            }
+          }
+          if (suffixed === undefined) {
             logger.warn?.(
               `cursor: MCP server ${JSON.stringify(name)} from ${cwd} collides with a different config; skipped`,
             )
@@ -152,8 +163,10 @@ export function registerMcp(
         })
       }
     }
+    if (generation !== reconcileGeneration) return
     const desired = new Set(wanted.map((item) => item.mountName))
     for (const item of wanted) {
+      if (generation !== reconcileGeneration) return
       const current = mounted.get(item.mountName)
       if (current?.fingerprint === item.fingerprint) continue
       current?.dispose()
@@ -181,6 +194,7 @@ export function registerMcp(
         logger.warn?.(`cursor: cannot mount MCP server ${item.label}: ${errorMessage(error)}`)
       }
     }
+    if (generation !== reconcileGeneration) return
     for (const [serverName, entry] of mounted) {
       if (desired.has(serverName)) continue
       entry.dispose()

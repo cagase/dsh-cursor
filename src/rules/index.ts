@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { basename, dirname, join, normalize } from 'node:path'
+import { basename, dirname, isAbsolute, join, normalize, relative, resolve } from 'node:path'
 import { dirExists, fileExists, listDir, readText } from '../fs.js'
 import { FrontmatterError, parseRuleFile, type ParsedRuleFile } from '../parse.js'
 import { findRepoRoot, projectRulesDir, relativeLabel } from '../roots.js'
@@ -166,8 +166,21 @@ export function ruleCatalogCandidates(rules: readonly LoadedRule[]): SkillCandid
   return candidates
 }
 
-export function matchingGlobRules(rules: readonly LoadedRule[], filePath: string): LoadedRule[] {
-  return rules.filter((rule) => rule.kind === 'glob' && rule.globs?.some((glob) => matchGlob(glob, filePath)))
+export function matchingGlobRules(rules: readonly LoadedRule[], filePath: string, cwd?: string): LoadedRule[] {
+  return rules.filter((rule) => rule.kind === 'glob' && rule.globs?.some((glob) => scopedGlobMatch(glob, filePath, cwd)))
+}
+
+function scopedGlobMatch(pattern: string, filePath: string, cwd?: string): boolean {
+  let glob = pattern.replace(/\\/g, '/').trim()
+  while (glob.startsWith('./')) glob = glob.slice(2)
+  if (glob.startsWith('/')) glob = glob.slice(1)
+  let target = filePath.replace(/\\/g, '/')
+  if (cwd !== undefined && cwd !== '') {
+    const rel = relative(resolve(cwd), resolve(target)).replace(/\\/g, '/')
+    if (rel === '' || rel === '..' || rel.startsWith('../') || isAbsolute(rel)) return false
+    target = rel
+  }
+  return matchGlob(glob, target)
 }
 
 const injected = new WeakMap<object, Set<string>>()
@@ -220,7 +233,7 @@ export async function attachGlobRules(agent: AgentLike, filePath: string, logger
   const cwd = agent.session.header.cwd
   if (!cwd) return
   try {
-    const rules = matchingGlobRules(await collectRules(cwd, logger), filePath)
+    const rules = matchingGlobRules(await collectRules(cwd, logger), filePath, cwd)
     for (const rule of rules) {
       const hash = createHash('sha256').update(rule.body).digest('hex').slice(0, 16)
       if (!remember(agent, `rule:${rule.file}:${hash}`)) continue
