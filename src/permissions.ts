@@ -1,4 +1,4 @@
-import { cursorToolName } from './hooks/names.js'
+import { cursorToolName, isTeamLaneTool } from './hooks/names.js'
 import type { PluginLogger, PreToolDecision, ToolExecutionLike } from './types.js'
 import { errorMessage, isPlainObject, matchGlob, toolCommand, toolFilePath } from './util.js'
 import type { CursorSettingsLoader } from './settings.js'
@@ -128,6 +128,7 @@ export function createPermissionsGate(
     } catch (error) {
       const reason = `cursor permission rules failed: ${errorMessage(error)}`
       logger.warn?.(reason)
+      if (isTeamLaneTool(exec.name)) return next()
       return { kind: 'deny', reason }
     }
   }

@@ -22,3 +22,8 @@ export function cursorToolName(dshName: string): string {
 export function isFileTouchTool(dshName: string): boolean {
   return dshName === 'read' || dshName === 'write' || dshName === 'edit'
 }
+
+/** Team coordination tools must stay callable when a Cursor check throws. */
+export function isTeamLaneTool(dshName: string): boolean {
+  return dshName === 'mailbox' || dshName === 'task'
+}

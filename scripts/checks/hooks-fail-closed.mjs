@@ -24,6 +24,17 @@ assert(denied?.kind === 'deny', `permission failure was allowed: ${JSON.stringif
 assert(allowed === false, 'permission failure called next()')
 assert(String(denied.reason).includes('permissions unreadable'), `deny reason: ${denied.reason}`)
 
+let mailboxAllowed = false
+const mailbox = await gate(
+  { name: 'mailbox', arguments: {}, agent, callId: 'mb' },
+  async () => {
+    mailboxAllowed = true
+    return { kind: 'allow' }
+  },
+)
+assert(mailbox?.kind === 'allow', `mailbox was denied when permissions threw: ${JSON.stringify(mailbox)}`)
+assert(mailboxAllowed === true, 'mailbox did not call next()')
+
 const warnings = []
 const listeners = new Map()
 hooks.registerHooks(
@@ -49,6 +60,16 @@ const hookDenied = await pre[0](exec, async () => {
 assert(hookDenied?.kind === 'deny', `hook failure was allowed: ${JSON.stringify(hookDenied)}`)
 assert(hooked === false, 'hook failure called next()')
 assert(warnings.some((message) => message.includes('hooks unreadable')), `hook failure was not logged: ${warnings.join(' | ')}`)
+let taskAllowed = false
+const taskAllowedDecision = await pre[0](
+  { name: 'task', arguments: {}, agent, callId: 'task' },
+  async () => {
+    taskAllowed = true
+    return { kind: 'allow' }
+  },
+)
+assert(taskAllowedDecision?.kind === 'allow', `task was denied when hooks threw: ${JSON.stringify(taskAllowedDecision)}`)
+assert(taskAllowed === true, 'task did not call next()')
 
 const approvalWarnings = []
 const approvalGate = permissions.createPermissionsGate(
