@@ -12,6 +12,7 @@ import { isFileTouchTool } from './hooks/names.js'
 import { registerMcp } from './mcp.js'
 import { registerCursorAdapter } from './models/adapter.js'
 import { createPermissionsGate } from './permissions.js'
+import { forgetLiveSession, liveCwds, noteLiveSession } from './live-sessions.js'
 import { attachGlobRules, collectRules, injectSessionRules, ruleCatalogCandidates, ruleWatchRoots } from './rules/index.js'
 import { CursorSettingsLoader } from './settings.js'
 import { attachMatchingSkills } from './skills/attach.js'
@@ -102,10 +103,14 @@ export function apply(ctx: Context | import('./types.js').HostContext, config: D
     logger.warn?.('cursor: ctx.skills is missing; catalog mapping skipped')
   }
 
-  host.on('agent/session-start', (payload: { agent: AgentLike }) => {
-    void injectSessionRules(payload.agent, logger).catch((error) => {
+  host.on('agent/session-start', (payload: { source?: string; agent: AgentLike }) => {
+    noteLiveSession(payload.agent.session.id, payload.agent.session.header.cwd)
+    void injectSessionRules(payload.agent, logger, payload.source).catch((error) => {
       logger.warn?.(`cursor: session rule inject failed: ${errorMessage(error)}`)
     })
+  })
+  host.on('agent/disposed', (payload: { agent: AgentLike }) => {
+    forgetLiveSession(payload.agent.session.id, payload.agent.session.header.cwd)
   })
 
   host.on('tools/result', (exec: ToolExecutionLike) => {
@@ -144,20 +149,26 @@ export function apply(ctx: Context | import('./types.js').HostContext, config: D
       invalidateSkills?.()
     }
     let watchGeneration = 0
-    const ensure = (cwd?: string) => {
+    const ensure = () => {
       const generation = ++watchGeneration
       for (const stop of stoppers.splice(0)) stop()
+      const cwds = liveCwds()
       const roots = [userCursorDir(resolved.userCursorDir)]
-      if (cwd) roots.push(projectCursorDir(cwd), join(cwd, '.cursorrules'))
-      void ruleWatchRoots(cwd).then((ruleRoots) => {
+      for (const cwd of cwds) roots.push(projectCursorDir(cwd), join(cwd, '.cursorrules'))
+      void Promise.all(cwds.map((cwd) => ruleWatchRoots(cwd))).then((ruleRootLists) => {
         if (generation !== watchGeneration) return
-        stoppers.push(watchPaths([...roots, ...ruleRoots], logger, refresh))
+        stoppers.push(watchPaths([...roots, ...ruleRootLists.flat()], logger, refresh))
       }).catch((error) => {
         logger.warn?.(`cursor: asset watch setup failed: ${errorMessage(error)}`)
       })
     }
     host.on('agent/session-start', (payload: { agent: AgentLike }) => {
-      ensure(payload.agent.session.header.cwd)
+      noteLiveSession(payload.agent.session.id, payload.agent.session.header.cwd)
+      ensure()
+    })
+    host.on('agent/disposed', (payload: { agent: AgentLike }) => {
+      forgetLiveSession(payload.agent.session.id, payload.agent.session.header.cwd)
+      ensure()
     })
     host.effect(
       () => () => {
