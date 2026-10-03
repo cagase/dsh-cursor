@@ -4,7 +4,7 @@ Status values: **supported** (plugin does this), **stand-in** (weaker substitute
 
 ## (a) Cursor files → DSH behavior
 
-User root: `$CURSOR_CONFIG_DIR` or `~/.cursor`. Project root: `<workspace>/.cursor`.
+User root: `$CURSOR_CONFIG_DIR` or `~/.cursor`. Project root: the session's current directory, `<cwd>/.cursor`.
 
 | Cursor surface | DSH behavior | Status |
 |----------------|--------------|--------|
@@ -45,9 +45,9 @@ User root: `$CURSOR_CONFIG_DIR` or `~/.cursor`. Project root: `<workspace>/.curs
 | `agent login` / `CURSOR_API_KEY` / `CURSOR_AUTH_TOKEN` | Not logged in → `AUTH` (`Run agent login`) | supported |
 | Silent fallback to another provider | Never | supported (refused) |
 | `agent models` slugs after login | Catalog ids as listed, including `*-fast` and `*-xhigh` | supported |
-| Fast / Extra High when list is AUTH | CLI-help example slugs plus synthetic `-fast` / `-xhigh`; labeled unconfirmed; `stream()` still AUTH | stand-in |
-| `reasoningEffort: xhigh` | CLI `[effort=max]` | supported |
-| `reasoningEffort: low` / `high` | CLI `[effort=…]` on the base slug | supported |
+| Fast / Extra High when list is AUTH | CLI-help example slugs plus the captured Grok families. Fast ids are `<base>-<effort>-fast` (for example `grok-4.7-high-fast`), not a bare `-fast` or `-xhigh` stuck on every help slug. `stream()` still AUTH | stand-in |
+| `reasoningEffort: xhigh` | Catalog slug suffix `-xhigh` (for example `grok-4.7-xhigh`). Not `[effort=max]` | supported |
+| `reasoningEffort: low` / `high` | Catalog slug suffix (`grok-4.7-low`, `grok-4.7-high`). Not `base[effort=…]` | supported |
 | AgentTeams `provider: cursor` + CLI slug | Same route ids as the picker; mailbox/task tools stay on the member | supported |
 | AgentTeams via `cursor_agent_*` ACP tools | Not the route; example profile omits them | won’t do |
 | `agent --print --output-format stream-json` | Full Cursor agent turn (`--force --trust`); DSH `tools` not forwarded | stand-in |
