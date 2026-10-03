@@ -266,8 +266,8 @@ async function collectToolOutcomes(
   }
   const kinds: { events: [string, string]; tools: string[]; match: string | undefined }[] = [
     { events: ['beforeShellExecution', 'afterShellExecution'], tools: ['bash', 'pwsh'], match: toolCommand(exec.arguments) },
-    { events: ['beforeReadFile', 'afterFileEdit'], tools: ['read'], match: toolFilePath(exec.arguments) },
-    { events: ['beforeReadFile', 'afterFileEdit'], tools: ['edit', 'write'], match: toolFilePath(exec.arguments) },
+    { events: ['beforeReadFile', ''], tools: ['read'], match: toolFilePath(exec.arguments) },
+    { events: ['', 'afterFileEdit'], tools: ['edit', 'write'], match: toolFilePath(exec.arguments) },
     {
       events: ['beforeMCPExecution', 'afterMCPExecution'],
       tools: exec.name.startsWith('mcp') ? [exec.name] : [],
@@ -280,6 +280,7 @@ async function collectToolOutcomes(
     if (kind.events[0].includes('MCP') && !exec.name.startsWith('mcp')) continue
     if (!kind.events[0].includes('MCP') && !kind.tools.includes(exec.name)) continue
     const event = phase === 'pre' ? kind.events[0] : kind.events[1]
+    if (event === '') continue
     const groups = settings.byEvent.get(event)
     if (!groups || groups.length === 0) continue
     outcomes.push(
