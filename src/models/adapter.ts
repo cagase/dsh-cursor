@@ -1,6 +1,7 @@
 import type { HostContext, PluginLogger } from '../types.js'
 import { isAbort, isPlainObject } from '../util.js'
 import {
+  AUTH_CODE,
   CursorCliError,
   EMPTY_RESPONSE_CODE,
   FALLBACK_MODEL_SLUGS,
@@ -210,6 +211,7 @@ export class CursorLlmAdapter {
     const probe = await probeCursorCli()
     if (!probe.bin) throw missingBinaryError()
     if (!probe.authenticated) {
+      if (probe.code && probe.code !== AUTH_CODE) throw new CursorCliError(probe.error ?? probe.code, probe.code)
       this.logger?.warn?.(probe.error ?? 'cursor: agent CLI is not logged in')
       return expandModelCatalog(FALLBACK_MODEL_SLUGS, true)
     }
@@ -218,7 +220,7 @@ export class CursorLlmAdapter {
       this.cacheCatalog(catalog)
       return expandModelCatalog(catalog.map((entry) => entry.id), false, this.catalog!.labels)
     } catch (error) {
-      if (error instanceof CursorCliError) {
+      if (error instanceof CursorCliError && error.code === AUTH_CODE) {
         this.logger?.warn?.(error.message)
         return expandModelCatalog(FALLBACK_MODEL_SLUGS, true)
       }

@@ -9,6 +9,8 @@ import { grokFamilyFor, grokSlugVocabulary, parseGrokRoute } from './grok.js'
 import type { AgentTurnPlan } from './session.js'
 
 export const AUTH_CODE = 'AUTH'
+export const TIMEOUT_CODE = 'TIMEOUT'
+export const EMPTY_CATALOG_CODE = 'EMPTY_CATALOG'
 export const MISSING_CREDENTIAL_CODE = 'MISSING_CREDENTIAL'
 export const INVALID_CREDENTIAL_CODE = 'INVALID_CREDENTIAL'
 export const INVALID_ARGS_CODE = 'INVALID_ARGS'
@@ -161,9 +163,6 @@ export async function probeCursorCli(signal?: AbortSignal): Promise<CursorCliPro
     const error = missingBinaryError()
     return { authenticated: false, error: error.message, code: error.code }
   }
-  if (hasEnvCredential()) {
-    return { bin, authenticated: true }
-  }
   try {
     const result = await runAgent(bin, ['status', '--format', 'json'], { timeoutMs: PROBE_TIMEOUT_MS, signal })
     const status = parseStatus(result.stdout) ?? parseStatus(result.stderr)
@@ -175,6 +174,9 @@ export async function probeCursorCli(signal?: AbortSignal): Promise<CursorCliPro
     return { bin, authenticated: false, error: classified.message, code: classified.code }
   } catch (error) {
     if (isAbort(error) || signal?.aborted) throw error
+    if (error instanceof CursorCliError) {
+      return { bin, authenticated: false, error: error.message, code: error.code }
+    }
     const classified = classifyCliFailure(error instanceof Error ? error.message : String(error))
     if (classified) return { bin, authenticated: false, error: classified.message, code: classified.code }
     return {
@@ -234,7 +236,7 @@ export async function listCursorModelCatalog(
   if (classified) throw new CursorCliError(classified.message, classified.code)
   throw new CursorCliError(
     lastDetail.trim() || 'Cursor agent CLI did not list any models.',
-    AUTH_CODE,
+    EMPTY_CATALOG_CODE,
   )
 }
 
@@ -460,7 +462,7 @@ export async function runAgent(
       ? undefined
       : setTimeout(() => {
         child.kill('SIGTERM')
-        finish(new CursorCliError(`Cursor agent CLI timed out after ${options.timeoutMs}ms.`, AUTH_CODE))
+        finish(new CursorCliError(`Cursor agent CLI timed out after ${options.timeoutMs}ms.`, TIMEOUT_CODE))
       }, options.timeoutMs)
     const cleanup = () => {
       options.signal?.removeEventListener('abort', onAbort)

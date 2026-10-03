@@ -1,5 +1,7 @@
 import type { AgentTurnPlan } from './session.js';
 export declare const AUTH_CODE = "AUTH";
+export declare const TIMEOUT_CODE = "TIMEOUT";
+export declare const EMPTY_CATALOG_CODE = "EMPTY_CATALOG";
 export declare const MISSING_CREDENTIAL_CODE = "MISSING_CREDENTIAL";
 export declare const INVALID_CREDENTIAL_CODE = "INVALID_CREDENTIAL";
 export declare const INVALID_ARGS_CODE = "INVALID_ARGS";
