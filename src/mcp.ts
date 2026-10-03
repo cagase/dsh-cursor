@@ -37,7 +37,9 @@ async function readEnvFile(path: string): Promise<Record<string, string>> {
   const env: Record<string, string> = {}
   try {
     if (!(await fileExists(path))) return env
-    const text = await readText(path)
+    const read = await readText(path)
+    if (read.truncated) return env
+    const text = read.text
     for (const line of text.split(/\r?\n/)) {
       const trimmed = line.trim()
       if (trimmed === '' || trimmed.startsWith('#')) continue

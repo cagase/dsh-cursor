@@ -1,7 +1,7 @@
 import { dirname, join } from 'node:path'
-import { dirExists, fileExists, listDir, readText } from '../fs.js'
+import { dirExists, fileExists, listDir, readText, treeStamp } from '../fs.js'
 import { FrontmatterError, parseAgentFile, parseSkillFile } from '../parse.js'
-import { projectCursorDir, userCursorDir } from '../roots.js'
+import { projectCursorDir, projectRulesDir, userCursorDir } from '../roots.js'
 import type {
   PluginLogger,
   SkillCandidate,
@@ -46,6 +46,7 @@ export interface SkillProviderOptions {
 
 export class CursorSkillProvider implements SkillProvider {
   readonly name = PROVIDER_NAME
+  private catalogCache: { key: string; listed: { candidates: SkillCandidate[]; complete: boolean } } | undefined
 
   constructor(
     private readonly logger: PluginLogger,
@@ -73,6 +74,21 @@ export class CursorSkillProvider implements SkillProvider {
   }
 
   async list(options: SkillLookupOptions) {
+    const roots = this.resolveRoots(options.cwd)
+    const stamp = options.signal
+      ? undefined
+      : [
+          options.cwd ? await treeStamp(projectRulesDir(options.cwd), options.signal) : '',
+          ...(await Promise.all(roots.map((root) => treeStamp(root.path, options.signal)))),
+        ].join('\n')
+    const cacheKey = `${options.cwd ?? ''}\0${stamp ?? ''}`
+    if (stamp !== undefined && this.catalogCache?.key === cacheKey) return this.catalogCache.listed
+    const listed = await this.listUncached(options)
+    if (stamp !== undefined && listed.complete) this.catalogCache = { key: cacheKey, listed }
+    return listed
+  }
+
+  private async listUncached(options: SkillLookupOptions) {
     const roots = this.resolveRoots(options.cwd)
     const candidates: SkillCandidate[] = []
     let complete = true
@@ -108,19 +124,28 @@ export class CursorSkillProvider implements SkillProvider {
       this.logger.warn?.(`cursor: cannot read asset root ${root.path}: ${errorMessage(error)}`)
       return { complete: false, continue: true }
     }
+    let sawIncomplete = false
     for (const entry of entries) {
       if (options.signal?.aborted) return { complete: false, continue: false }
       if (root.kind.endsWith('-skills') || root.kind === 'user-skills-cursor') {
         if (!entry.isDir || entry.name.startsWith('.')) continue
         const result = await this.listBundleDirs(join(root.path, entry.name), root, options, candidates, 1)
-        if (!result.complete) return result
         if (!result.continue) return { complete: false, continue: false }
+        if (!result.complete) {
+          sawIncomplete = true
+          continue
+        }
       } else {
         if (!entry.isFile || !entry.name.toLowerCase().endsWith('.md')) continue
         try {
           const file = join(root.path, entry.name)
-          const text = await readText(file, options.signal)
-          candidates.push(this.agentSummary(root, entry.name.replace(/\.md$/i, ''), file, text))
+          const read = await readText(file, options.signal)
+          if (read.truncated) {
+            this.logger.warn?.(`cursor: cannot read agent entry under ${root.path}: file exceeds the read cap`)
+            sawIncomplete = true
+            continue
+          }
+          candidates.push(this.agentSummary(root, entry.name.replace(/\.md$/i, ''), file, read.text))
         } catch (error) {
           if (isAbort(error)) return { complete: false, continue: false }
           if (isMissing(error)) continue
@@ -129,11 +154,12 @@ export class CursorSkillProvider implements SkillProvider {
             continue
           }
           this.logger.warn?.(`cursor: cannot read agent entry under ${root.path}: ${errorMessage(error)}`)
-          return { complete: false, continue: true }
+          sawIncomplete = true
+          continue
         }
       }
     }
-    return { complete: true, continue: true }
+    return { complete: !sawIncomplete, continue: true }
   }
 
   private async listBundleDirs(
@@ -147,9 +173,13 @@ export class CursorSkillProvider implements SkillProvider {
     const skillFile = join(dir, 'SKILL.md')
     try {
       if (await fileExists(skillFile, options.signal)) {
-        const text = await readText(skillFile, options.signal)
+        const read = await readText(skillFile, options.signal)
+        if (read.truncated) {
+          this.logger.warn?.(`cursor: cannot read skill entry ${skillFile}: file exceeds the read cap`)
+          return { complete: false, continue: true }
+        }
         try {
-          candidates.push(this.skillSummary(root, dir.split(/[/\\]/).pop() ?? 'skill', skillFile, text))
+          candidates.push(this.skillSummary(root, dir.split(/[/\\]/).pop() ?? 'skill', skillFile, read.text))
         } catch (error) {
           if (isAbort(error)) return { complete: false, continue: false }
           if (isMissing(error)) {
@@ -260,7 +290,9 @@ export class CursorSkillProvider implements SkillProvider {
     }
     let text: string
     try {
-      text = await readText(locator.file, options.signal)
+      const read = await readText(locator.file, options.signal)
+      if (read.truncated) return undefined
+      text = read.text
     } catch (error) {
       if (isAbort(error)) throw error
       return undefined
