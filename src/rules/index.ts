@@ -183,7 +183,11 @@ function remember(agent: AgentLike, key: string): boolean {
   return true
 }
 
-export async function injectSessionRules(agent: AgentLike, logger: PluginLogger): Promise<void> {
+export async function injectSessionRules(
+  agent: AgentLike,
+  logger: PluginLogger,
+  source?: string,
+): Promise<void> {
   const cwd = agent.session.header.cwd
   if (!cwd) return
   try {
@@ -198,7 +202,15 @@ export async function injectSessionRules(agent: AgentLike, logger: PluginLogger)
     const nested = await collectSubdirAgentsMd(cwd, logger)
     sections.push(...nested)
     if (sections.length === 0) return
-    agent.inject(reminder(PLUGIN_SOURCE, renderAlwaysApply(sections)))
+    const body = renderAlwaysApply(sections)
+    const hash = createHash('sha256').update(body).digest('hex').slice(0, 16)
+    const key = `always:${hash}`
+    if (source === 'resume') {
+      if (!remember(agent, key)) return
+    } else {
+      remember(agent, key)
+    }
+    agent.inject(reminder(PLUGIN_SOURCE, body))
   } catch (error) {
     logger.warn?.(`cursor: failed to inject always-apply rules: ${errorMessage(error)}`)
   }

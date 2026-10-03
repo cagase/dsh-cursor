@@ -6,6 +6,7 @@ import { pathToFileURL } from 'node:url'
 const lib = await import(pathToFileURL(join(process.cwd(), 'lib/index.js')).href)
 const rules = await import(pathToFileURL(join(process.cwd(), 'lib/rules/index.js')).href)
 const mcp = await import(pathToFileURL(join(process.cwd(), 'lib/mcp.js')).href)
+const sessions = await import(pathToFileURL(join(process.cwd(), 'lib/live-sessions.js')).href)
 
 function assert(cond, message) {
   if (!cond) throw new Error(message)
@@ -69,6 +70,24 @@ try {
     () => injected.some((message) => textFrom(message).includes('always body')),
     'resume did not inject always-apply rules',
   )
+  const afterResume = injected.length
+  for (const listener of listeners.get('agent/session-start') ?? []) {
+    listener({ source: 'resume', agent })
+  }
+  await new Promise((resolve) => setTimeout(resolve, 50))
+  assert(injected.length === afterResume, 'a second resume stacked the same always-apply rules')
+  const other = join(root, 'other')
+  await mkdir(other, { recursive: true })
+  const otherAgent = {
+    inject: (message) => injected.push(message),
+    session: { id: 'other', header: { cwd: other } },
+  }
+  for (const listener of listeners.get('agent/session-start') ?? []) {
+    listener({ source: 'startup', agent: otherAgent })
+  }
+  assert(sessions.liveCwds().includes(root) && sessions.liveCwds().includes(other), `live cwds dropped a member: ${sessions.liveCwds().join(', ')}`)
+  for (const listener of listeners.get('agent/disposed') ?? []) listener({ agent: otherAgent })
+  assert(!sessions.liveCwds().includes(other), `disposed member cwd still live: ${sessions.liveCwds().join(', ')}`)
 
   injected.length = 0
   const filePath = join(root, 'src', 'a.ts')
@@ -114,6 +133,57 @@ try {
   await waitFor(() => disposed.length === 1, 'changed MCP config did not remount')
   await waitFor(() => mounts.length === 2, 'replacement MCP server did not mount')
   assert(mounts[1].args[0] === 'changed', `remount kept the old config: ${JSON.stringify(mounts[1])}`)
+
+  sessions.forgetLiveSession('reload', root)
+  sessions.forgetLiveSession(undefined, root)
+  const cwdA = join(root, 'member-a')
+  const cwdB = join(root, 'member-b')
+  await mkdir(cwdA, { recursive: true })
+  await mkdir(cwdB, { recursive: true })
+  const byCwd = new Map([
+    [cwdA, new Map([['echo', { command: 'echo', args: ['from-a'], baseDir: cwdA }]])],
+    [cwdB, new Map([['echo', { command: 'echo', args: ['from-b'], baseDir: cwdB }]])],
+  ])
+  const teamMounts = []
+  const teamDisposed = []
+  const teamListeners = new Map()
+  const teamWarnings = []
+  mcp.registerMcp(
+    {
+      on: (event, listener) => {
+        const list = teamListeners.get(event) ?? []
+        list.push(listener)
+        teamListeners.set(event, list)
+      },
+      effect: () => {},
+      plugin: (_plugin, config) => {
+        teamMounts.push(config)
+        return { dispose: () => teamDisposed.push(config.args?.[0]) }
+      },
+    },
+    { warn: (message) => teamWarnings.push(message), info() {} },
+    { load: async (cwd) => ({ mcpServers: byCwd.get(cwd) ?? new Map() }) },
+    1000,
+  )
+  const start = (id, cwd) => {
+    for (const listener of teamListeners.get('agent/session-start') ?? []) {
+      listener({ agent: { session: { id, header: { cwd } } } })
+    }
+  }
+  start('member-a', cwdA)
+  await waitFor(() => teamMounts.length === 1, 'first member MCP did not mount')
+  start('member-b', cwdB)
+  await waitFor(() => teamMounts.length === 2, `second member MCP clobbered the first: ${teamMounts.length}`)
+  assert(
+    teamWarnings.some((message) => message.includes('differs')),
+    `different MCP configs were not split: ${teamWarnings.join(' | ')}`,
+  )
+  assert(sessions.liveCwds().includes(cwdA) && sessions.liveCwds().includes(cwdB), 'a member cwd was dropped')
+  for (const listener of teamListeners.get('agent/disposed') ?? []) {
+    listener({ agent: { session: { id: 'member-a', header: { cwd: cwdA } } } })
+  }
+  await waitFor(() => teamDisposed.includes('from-a'), 'disposed member MCP server stayed mounted')
+  assert(sessions.liveCwds().includes(cwdB) && !sessions.liveCwds().includes(cwdA), `cwd set after dispose: ${sessions.liveCwds().join(', ')}`)
 } finally {
   if (savedConfigDir === undefined) delete process.env.CURSOR_CONFIG_DIR
   else process.env.CURSOR_CONFIG_DIR = savedConfigDir
