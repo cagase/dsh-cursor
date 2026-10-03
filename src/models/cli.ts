@@ -165,18 +165,14 @@ export async function probeCursorCli(signal?: AbortSignal): Promise<CursorCliPro
   }
   try {
     const result = await runAgent(bin, ['status', '--format', 'json'], { timeoutMs: PROBE_TIMEOUT_MS, signal })
-    const status = parseStatus(result.stdout) ?? parseStatus(result.stderr)
-    if (status?.authenticated) return { bin, authenticated: true }
-    const classified = classifyCliFailure(`${result.stdout}\n${result.stderr}`) ?? {
-      code: AUTH_CODE,
-      message: 'Cursor agent CLI is not logged in. Run `agent login`.',
-    }
-    return { bin, authenticated: false, error: classified.message, code: classified.code }
+    return probeFromStatus(bin, `${result.stdout}\n${result.stderr}`, parseStatus(result.stdout) ?? parseStatus(result.stderr))
   } catch (error) {
     if (isAbort(error) || signal?.aborted) throw error
     if (error instanceof CursorCliError) {
+      if (error.code === TIMEOUT_CODE && hasEnvCredential()) return { bin, authenticated: true }
       return { bin, authenticated: false, error: error.message, code: error.code }
     }
+    if (hasEnvCredential()) return { bin, authenticated: true }
     const classified = classifyCliFailure(error instanceof Error ? error.message : String(error))
     if (classified) return { bin, authenticated: false, error: classified.message, code: classified.code }
     return {
@@ -185,6 +181,31 @@ export async function probeCursorCli(signal?: AbortSignal): Promise<CursorCliPro
       error: error instanceof Error ? error.message : String(error),
       code: AUTH_CODE,
     }
+  }
+}
+
+function probeFromStatus(
+  bin: string,
+  detail: string,
+  status: { authenticated: boolean } | undefined,
+): CursorCliProbe {
+  if (status?.authenticated) return { bin, authenticated: true }
+  const classified = classifyCliFailure(detail)
+  if (status?.authenticated === false || classified?.code === AUTH_CODE) {
+    return {
+      bin,
+      authenticated: false,
+      error: classified?.message ?? 'Cursor agent CLI is not logged in. Run `agent login`.',
+      code: AUTH_CODE,
+    }
+  }
+  if (hasEnvCredential()) return { bin, authenticated: true }
+  if (classified) return { bin, authenticated: false, error: classified.message, code: classified.code }
+  return {
+    bin,
+    authenticated: false,
+    error: 'Cursor agent CLI is not logged in. Run `agent login`.',
+    code: AUTH_CODE,
   }
 }
 
