@@ -34,5 +34,5 @@ Weaker substitutes. Do not report these as Cursor-parity.
 - Description-only rules → catalog skills, not embedding retrieval
 - Agent `readonly` / `is_background` → warn only
 - `.cursorrules` → one always-apply blob
-- AUTH catalog → CLI-help example slugs until `agent models` works
+- AUTH catalog → CLI-help example slugs plus the captured Grok families until `agent models` works. Fast ids are effort-qualified (`grok-4.7-high-fast`), not a synthetic `-fast` or `-xhigh` on every help slug
 - Model stream → Cursor CLI agent turn; DSH `GenerateOptions.tools` are not forwarded

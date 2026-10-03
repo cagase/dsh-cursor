@@ -59,7 +59,7 @@ Missing binary fails with `MISSING_CREDENTIAL`. Not logged in fails with `AUTH` 
 
 User root is `$CURSOR_CONFIG_DIR` when set, otherwise `~/.cursor`.
 
-Project root is `<workspace>/.cursor`.
+Project files come from the session's current directory, `<cwd>/.cursor`. That is the directory the session is in, including when it is not the git root.
 
 | Path | Mapped |
 |------|--------|
@@ -67,10 +67,10 @@ Project root is `<workspace>/.cursor`.
 | `{user,project}/agents/*.md` | Delegation-spec catalog skills |
 | `{user}/skills-cursor/**/SKILL.md` | Off unless `skillsCursor: true` |
 | `{project}/rules/**/*.mdc` | alwaysApply / glob / description / manual |
-| `<repo>/.cursorrules` | Always-apply blob |
+| `<cwd>/.cursorrules` | Always-apply blob |
 | Nested `AGENTS.md` between repo root (exclusive) and cwd | Always-apply memory |
 | `{user,project}/hooks.json` | Command hooks |
-| `{user}/cli-config.json`, `{project}/cli.json` | Deny tokens at `tools/pre-execute` |
+| `{user}/cli-config.json`, `{project}/cli.json` | Deny tokens at `tools/pre-execute`; the two lists are combined |
 | `{user,project}/mcp.json` | `mcp__cursor__<server>__*` |
 
 Live reload watches those files when `watch: true` (default).
@@ -103,7 +103,7 @@ members:
       - task
 ```
 
-After login, catalog slugs already include Fast (`*-fast`) and Extra High (`*-xhigh`). `reasoningEffort: xhigh` maps to CLI `[effort=max]`.
+After login, Grok routes use the CLI's own slug names. Extra High is a `-xhigh` suffix, for example `grok-4.7-xhigh`. Fast is `<base>-<effort>-fast`, for example `grok-4.7-high-fast`. A bare `grok-4.7-fast` is rejected. The plugin does not send `[effort=max]` or any other bracketed model string.
 
 `agent --print` is a full Cursor agent turn. DSH tool schemas are not forwarded.
 
@@ -132,11 +132,21 @@ Status of each mapping: [docs/behavior-matrix.md](docs/behavior-matrix.md). Harn
     models: true
     skillsCursor: false
     watch: true
+    permissions: true
+    mcp: true
+    userCursorDir: ~/.cursor
+    hookTimeoutMs: 30000
+    maxHookOutputChars: 10000
+    mcpToolCallTimeoutMs: 120000
 ```
+
+`userCursorDir` is the user Cursor directory. `$CURSOR_CONFIG_DIR` still wins when it is set. `permissions` applies cli deny tokens. `mcp` mounts `mcp.json`. `hookTimeoutMs` is the default hook timeout. `maxHookOutputChars` caps hook text copied into the session. `mcpToolCallTimeoutMs` is the per-call timeout for a mounted MCP server.
 
 ## Scripts (from source)
 
-`npm run build` · `npm run verify` · `npm run verify:fixture` · `npm run verify:models:live`
+`npm run build` · `npm run verify` · `npm run verify:fixture` · `npm run verify:live`
+
+`npm run verify` stays offline. `npm run verify:live` talks to the Cursor agent CLI and fails if that CLI is missing or not logged in.
 
 ## License
 
