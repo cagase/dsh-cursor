@@ -45,10 +45,23 @@ process.exit(0)
     'empty catalog',
   )
 
+  const quiet = join(root, 'quiet-agent.mjs')
+  await writeFile(quiet, '#!/usr/bin/env node\nprocess.exit(0)\n')
+  await chmod(quiet, 0o755)
+  process.env.CURSOR_AGENT_BIN = quiet
+  const unread = await cli.probeCursorCli()
+  assert(unread.authenticated === true, `env key was rejected when status was empty: ${JSON.stringify(unread)}`)
+  const denied = join(root, 'denied-agent.mjs')
+  await writeFile(denied, '#!/usr/bin/env node\nprocess.stdout.write(\'{"isAuthenticated":false}\')\n')
+  await chmod(denied, 0o755)
+  process.env.CURSOR_AGENT_BIN = denied
+  const loggedOut = await cli.probeCursorCli()
+  assert(loggedOut.authenticated === false && loggedOut.code === cli.AUTH_CODE, `explicit logout was ignored: ${JSON.stringify(loggedOut)}`)
   const sleeper = join(root, 'sleep-agent.mjs')
   await writeFile(sleeper, '#!/usr/bin/env node\nsetInterval(() => {}, 1000)\n')
   await chmod(sleeper, 0o755)
   process.env.CURSOR_AGENT_BIN = sleeper
+  delete process.env.CURSOR_API_KEY
   const started = Date.now()
   const timed = await cli.probeCursorCli()
   const elapsed = Date.now() - started
