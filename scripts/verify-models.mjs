@@ -112,16 +112,24 @@ const EXPECTED_EFFORTS = {
 }
 const familySlugs = new Set(liveIds.filter((id) => /^(?:cursor-)?grok(?:$|-)/.test(id)))
 
-// Wire acceptance straight from the capture (section 3 / wire/): the accepted
-// set is the catalog plus every exit=0 wire probe, the rejected set is the rest.
+// Wire acceptance from the capture (section 3 / wire/). A catalog slug counts
+// only when that capture did not reject it. A string that is not in the catalog
+// counts only when a probe exited 0.
 const wireMatrix = await readFixture('wire-matrix.txt')
-const acceptedWire = new Set(liveIds)
+const probedAccept = new Set()
 const rejectedWire = new Set()
 for (const block of wireMatrix.split(/^=+ MODEL: /m).slice(1)) {
   const id = block.slice(0, block.indexOf('\n')).trim()
   const exit = /^exit=(\d+)/m.exec(block)?.[1]
-  if (exit === '0') acceptedWire.add(id)
-  else rejectedWire.add(id)
+  if (exit === '0') probedAccept.add(id)
+  else if (exit !== undefined) rejectedWire.add(id)
+}
+const acceptedWire = new Set([...liveIds].filter((id) => !rejectedWire.has(id)))
+for (const id of probedAccept) {
+  if (!rejectedWire.has(id)) acceptedWire.add(id)
+}
+for (const id of rejectedWire) {
+  assert(!acceptedWire.has(id), `rejected wire stayed accepted: ${id}`)
 }
 assert(acceptedWire.has('grok-4.7'), 'capture no longer accepts the bare grok-4.7 base')
 assert(rejectedWire.has('grok-4.7[effort=max]'), 'capture no longer rejects the DSH bug string')
