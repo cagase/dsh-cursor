@@ -24,12 +24,14 @@ export declare class CursorSettingsLoader {
     private readonly logger;
     private readonly configuredUserDir;
     private readonly cache;
+    private notedUnsupported;
     constructor(logger: PluginLogger, configuredUserDir: string);
     userDir(): string;
     sourcePaths(cwd?: string): Promise<string[]>;
     invalidate(): void;
     private sources;
     load(cwd?: string): Promise<LoadedCursorSettings>;
+    private noteUnsupported;
     private loadFresh;
     private readLayer;
 }

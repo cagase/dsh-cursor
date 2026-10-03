@@ -27,7 +27,7 @@ export function findRepoRoot(cwd: string): string {
 }
 
 export function projectRulesDir(cwd: string): string {
-  return join(findRepoRoot(cwd), '.cursor', 'rules')
+  return join(cwd, '.cursor', 'rules')
 }
 
 export function relativeLabel(cwd: string, path: string): string {
