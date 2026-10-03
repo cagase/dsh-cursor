@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { basename, dirname, join, normalize } from 'node:path'
 import { dirExists, fileExists, listDir, readText } from '../fs.js'
 import { FrontmatterError, parseRuleFile, type ParsedRuleFile } from '../parse.js'
@@ -209,7 +210,8 @@ export async function attachGlobRules(agent: AgentLike, filePath: string, logger
   try {
     const rules = matchingGlobRules(await collectRules(cwd, logger), filePath)
     for (const rule of rules) {
-      if (!remember(agent, `rule:${rule.file}`)) continue
+      const hash = createHash('sha256').update(rule.body).digest('hex').slice(0, 16)
+      if (!remember(agent, `rule:${rule.file}:${hash}`)) continue
       agent.inject(
         reminder(
           PLUGIN_SOURCE,

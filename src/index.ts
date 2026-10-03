@@ -17,7 +17,7 @@ import { CursorSettingsLoader } from './settings.js'
 import { attachMatchingSkills } from './skills/attach.js'
 import { CursorSkillProvider, PROVIDER_NAME } from './skills/provider.js'
 import type { AgentLike, PluginLogger, SkillCandidate, SkillProviderControl, ToolExecutionLike } from './types.js'
-import { toolFilePath } from './util.js'
+import { errorMessage, toolFilePath } from './util.js'
 import { watchPaths } from './watch.js'
 import { projectCursorDir, userCursorDir } from './roots.js'
 
@@ -102,9 +102,10 @@ export function apply(ctx: Context | import('./types.js').HostContext, config: D
     logger.warn?.('cursor: ctx.skills is missing; catalog mapping skipped')
   }
 
-  host.on('agent/session-start', (payload: { source?: string; agent: AgentLike }) => {
-    if (payload.source === 'resume') return
-    void injectSessionRules(payload.agent, logger)
+  host.on('agent/session-start', (payload: { agent: AgentLike }) => {
+    void injectSessionRules(payload.agent, logger).catch((error) => {
+      logger.warn?.(`cursor: session rule inject failed: ${errorMessage(error)}`)
+    })
   })
 
   host.on('tools/result', (exec: ToolExecutionLike) => {
@@ -112,13 +113,17 @@ export function apply(ctx: Context | import('./types.js').HostContext, config: D
     const agent = exec.agent
     const filePath = toolFilePath(exec.arguments)
     if (!agent || !filePath) return
-    void attachGlobRules(agent, filePath, logger)
+    void attachGlobRules(agent, filePath, logger).catch((error) => {
+      logger.warn?.(`cursor: glob rule attach failed: ${errorMessage(error)}`)
+    })
     void (async () => {
       if (!provider) return
       const listed = await provider.list({ cwd: agent.session.header.cwd })
       const candidates = Array.isArray(listed) ? listed : listed.candidates
       await attachMatchingSkills(agent, filePath, candidates, logger)
-    })()
+    })().catch((error) => {
+      logger.warn?.(`cursor: skill attach failed: ${errorMessage(error)}`)
+    })
   })
 
   const permissionGate = resolved.permissions ? createPermissionsGate(logger, loader) : undefined
@@ -139,12 +144,17 @@ export function apply(ctx: Context | import('./types.js').HostContext, config: D
       loader.invalidate()
       invalidateSkills?.()
     }
+    let watchGeneration = 0
     const ensure = (cwd?: string) => {
+      const generation = ++watchGeneration
       for (const stop of stoppers.splice(0)) stop()
       const roots = [userCursorDir(resolved.userCursorDir)]
       if (cwd) roots.push(projectCursorDir(cwd), join(cwd, '.cursorrules'))
-      void Promise.all([ruleWatchRoots(cwd)]).then(([ruleRoots]) => {
+      void ruleWatchRoots(cwd).then((ruleRoots) => {
+        if (generation !== watchGeneration) return
         stoppers.push(watchPaths([...roots, ...ruleRoots], logger, refresh))
+      }).catch((error) => {
+        logger.warn?.(`cursor: asset watch setup failed: ${errorMessage(error)}`)
       })
     }
     host.on('agent/session-start', (payload: { agent: AgentLike }) => {
