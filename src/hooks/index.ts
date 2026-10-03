@@ -164,7 +164,7 @@ export function registerHooks(
     const agent = payload.agent
     const event = isSubagent(agent) ? 'subagentStop' : 'stop'
     void runNamed(agent, loader, logger, config, onSpawn, event).then((outcomes) => {
-      injectContexts(agent, isSubagent(agent) ? 'subagentStop' : 'afterAgentResponse', outcomes, config)
+      injectContexts(agent, isSubagent(agent) ? 'subagentStop' : 'stop', outcomes, config)
       const followup = resolveFollowup(outcomes, config.maxHookOutputChars)
       if (followup !== undefined && allowFollowup(followups, agent, outcomes) && agent.steer) {
         agent.steer(pluginUserMessage(`dsh-cursor:hooks/${event}`, followup))
@@ -216,6 +216,7 @@ async function runNamed(
 ): Promise<HookOutcome[]> {
   const groups = (await loader.load(agent.session.header.cwd)).byEvent.get(event)
   if (!groups || groups.length === 0) return []
+  if (signal?.aborted) return []
   try {
     return await runEventHooks(spec(agent, event, groups, undefined, extra, config, onSpawn, signal), logger)
   } catch (error) {
@@ -305,6 +306,8 @@ async function collectToolOutcomes(
   return outcomes
 }
 
+let notedAskPermission = false
+
 function resolvePreTool(
   outcomes: readonly HookOutcome[],
   logger: PluginLogger,
@@ -315,6 +318,10 @@ function resolvePreTool(
     if (!outcome.ran) continue
     if (outcome.output?.updated_input !== undefined) {
       logger.warn?.('cursor: preToolUse updated_input rewriting is not supported (DSH freezes tool arguments); ignored')
+    }
+    if (outcome.output?.permission === 'ask' && !notedAskPermission) {
+      notedAskPermission = true
+      logger.warn?.('cursor: hook permission "ask" is not supported; DSH owns approval')
     }
     if (outcome.exitCode === 2 || outcome.output?.permission === 'deny') {
       return {
