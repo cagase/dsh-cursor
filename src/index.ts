@@ -6,7 +6,6 @@
  * picker + AgentTeams provider `cursor`.
  */
 import { join } from 'node:path'
-import type { Context } from '@deepseek-ai/cordis'
 import { registerHooks } from './hooks/index.js'
 import { isFileTouchTool } from './hooks/names.js'
 import { registerMcp } from './mcp.js'
@@ -16,7 +15,7 @@ import { attachGlobRules, collectRules, injectSessionRules, ruleCatalogCandidate
 import { CursorSettingsLoader } from './settings.js'
 import { attachMatchingSkills } from './skills/attach.js'
 import { CursorSkillProvider, PROVIDER_NAME } from './skills/provider.js'
-import type { AgentLike, PluginLogger, SkillCandidate, SkillProviderControl, ToolExecutionLike } from './types.js'
+import type { AgentLike, HostContext, PluginLogger, SkillCandidate, SkillProviderControl, ToolExecutionLike } from './types.js'
 import { errorMessage, toolFilePath } from './util.js'
 import { watchPaths } from './watch.js'
 import { projectCursorDir, userCursorDir } from './roots.js'
@@ -62,8 +61,8 @@ export const DEFAULT_CONFIG = {
   mcpToolCallTimeoutMs: 120_000,
 } as const satisfies Required<DshCursorConfig>
 
-export function apply(ctx: Context | import('./types.js').HostContext, config: DshCursorConfig = {}): void {
-  const host = ctx as import('./types.js').HostContext
+export function apply(ctx: HostContext, config: DshCursorConfig = {}): void {
+  const host = ctx
   const resolved = { ...DEFAULT_CONFIG, ...config }
   const logger = (host.get('logger') ?? {}) as PluginLogger
 
@@ -172,12 +171,5 @@ export function apply(ctx: Context | import('./types.js').HostContext, config: D
   )
 }
 
-export { PROVIDER_NAME } from './skills/provider.js'
 export { PROVIDER_ID } from './models/adapter.js'
-export { userCursorDir, projectCursorDir, findRepoRoot } from './roots.js'
-export { matchGlob } from './util.js'
-export { classifyRule } from './rules/index.js'
-export { evaluateCursorPermissions } from './permissions.js'
-export { matcherHits } from './hooks/run.js'
-export { registerCursorAdapter, CursorLlmAdapter } from './models/adapter.js'
-export { wireCursorModel, parseCursorModelId, probeCursorCli } from './models/cli.js'
+export { registerCursorAdapter } from './models/adapter.js'
