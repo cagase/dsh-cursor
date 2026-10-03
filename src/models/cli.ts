@@ -157,6 +157,21 @@ export async function hasCursorChatStore(sessionId: string): Promise<boolean> {
   return false
 }
 
+/** True when that chat's store file exists and is non-empty. */
+export async function cursorChatHasTranscript(sessionId: string): Promise<boolean> {
+  const id = sessionId.trim()
+  if (id === '') return false
+  const root = cursorChatsRoot()
+  const entries = await readdir(root, { withFileTypes: true }).catch(() => undefined)
+  if (entries === undefined) return false
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue
+    const info = await stat(join(root, entry.name, id, 'store.db')).catch(() => undefined)
+    if (info?.isFile() && info.size > 0) return true
+  }
+  return false
+}
+
 export async function probeCursorCli(signal?: AbortSignal): Promise<CursorCliProbe> {
   const bin = await resolveAgentBin()
   if (!bin) {
@@ -730,12 +745,13 @@ export async function* streamAgentTurn(
     && turn.plan.session.id
     && isSessionInUse(first.stderr)
   ) {
+    const hasTranscript = await cursorChatHasTranscript(turn.plan.session.id)
     const resumeText = turn.plan.resumePositional
     const resumed: AgentTurnPlan = {
       ...turn.plan,
-      positional: resumeText !== undefined && resumeText !== '' ? resumeText : turn.plan.positional,
+      positional: hasTranscript && resumeText !== undefined && resumeText !== '' ? resumeText : turn.plan.positional,
       session: { mode: 'resume', id: turn.plan.session.id },
-      bootstrap: false,
+      bootstrap: !hasTranscript,
     }
     turn.plan = resumed
     const second = yield* attemptAgentTurn(bin, buildAgentArgs(wireModel, resumed, options.cwd), options)

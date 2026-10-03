@@ -53,6 +53,8 @@ export declare function cursorChatsRoot(): string;
  * used as a signal.
  */
 export declare function hasCursorChatStore(sessionId: string): Promise<boolean>;
+/** True when that chat's store file exists and is non-empty. */
+export declare function cursorChatHasTranscript(sessionId: string): Promise<boolean>;
 export declare function probeCursorCli(signal?: AbortSignal): Promise<CursorCliProbe>;
 /** One advertised catalog entry: the id handed to `--model` plus its label. */
 export interface CursorCatalogEntry {

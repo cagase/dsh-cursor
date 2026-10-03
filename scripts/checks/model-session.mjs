@@ -1,4 +1,4 @@
-import { chmod, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -14,6 +14,7 @@ const saved = {
   bin: process.env.CURSOR_AGENT_BIN,
   key: process.env.CURSOR_API_KEY,
   token: process.env.CURSOR_AUTH_TOKEN,
+  chats: process.env.CURSOR_CHATS_DIR,
 }
 const root = await mkdtemp(join(tmpdir(), 'dsh-cursor-session-'))
 try {
@@ -64,16 +65,35 @@ process.exit(0)
     },
   }
   const workspace = join(root, 'work')
-  await (await import('node:fs/promises')).mkdir(workspace)
+  const chats = join(root, 'chats')
+  await mkdir(workspace, { recursive: true })
+  await mkdir(chats, { recursive: true })
+  process.env.CURSOR_CHATS_DIR = chats
   for await (const _event of cli.streamAgentTurn(agent, 'gpt-5', holder, { cwd: workspace })) {
     // drain
   }
   assert(holder.plan.session.mode === 'resume', `collision left mode ${holder.plan.session.mode}`)
-  assert(holder.plan.positional === 'latest', `collision resent the bootstrap: ${holder.plan.positional}`)
+  assert(holder.plan.positional.includes('secret'), `empty chat dropped the bootstrap: ${holder.plan.positional}`)
+  const stored = {
+    plan: {
+      positional: holder.plan.positional,
+      resumePositional: 'latest',
+      session: { mode: 'new', id },
+      bootstrap: true,
+      deliveredTurns: 2,
+      commit() {},
+    },
+  }
+  await mkdir(join(chats, 'workspace', id), { recursive: true })
+  await writeFile(join(chats, 'workspace', id, 'store.db'), 'transcript')
+  for await (const _event of cli.streamAgentTurn(agent, 'gpt-5', stored, { cwd: workspace })) {
+    // drain
+  }
+  assert(stored.plan.positional === 'latest', `non-empty chat resent the bootstrap: ${stored.plan.positional}`)
   const busyLines = (await readFile(log, 'utf8')).trim().split('\n').map((line) => JSON.parse(line))
-  const resumeArgs = busyLines.find((args) => args.includes('--resume'))
-  assert(resumeArgs?.at(-1) === 'latest', `resume positional: ${JSON.stringify(resumeArgs)}`)
-  assert(resumeArgs.includes('--workspace') && resumeArgs.includes(workspace), 'resume dropped the workspace')
+  const resumeArgs = busyLines.filter((args) => args.includes('--resume'))
+  assert(resumeArgs.at(-1)?.at(-1) === 'latest', `resume positional: ${JSON.stringify(resumeArgs.at(-1))}`)
+  assert(resumeArgs[0].includes('--workspace') && resumeArgs[0].includes(workspace), 'resume dropped the workspace')
 
   process.env.FAKE_MODE = 'auth'
   let reanchored = false
@@ -143,10 +163,24 @@ process.exit(0)
   const workspaceArgs = (await readFile(workspaceLog, 'utf8')).trim().split('\n').map((line) => JSON.parse(line))
   const turn = workspaceArgs.find((args) => args.includes('--workspace'))
   assert(turn?.includes(workspace), `workspace was not the caller cwd: ${JSON.stringify(turn)}`)
+  const remembered = await import(pathToFileURL(join(process.cwd(), 'lib/models/session-cwd.js')).href)
+  remembered.noteSessionCwd('member-1', workspace)
+  for await (const _chunk of instance.stream({
+    provider: 'cursor',
+    model: 'gpt-5',
+    sessionId: 'member-1',
+    messages: [{ role: 'user', content: [{ type: 'text', text: 'hi again' }] }],
+  })) {
+    // drain
+  }
+  const rememberedArgs = (await readFile(workspaceLog, 'utf8')).trim().split('\n').map((line) => JSON.parse(line))
+  const rememberedTurn = rememberedArgs.filter((args) => args.includes('--workspace')).at(-1)
+  assert(rememberedTurn?.includes(workspace), `session cwd was not used: ${JSON.stringify(rememberedTurn)}`)
 } finally {
   restore('CURSOR_AGENT_BIN', saved.bin)
   restore('CURSOR_API_KEY', saved.key)
   restore('CURSOR_AUTH_TOKEN', saved.token)
+  restore('CURSOR_CHATS_DIR', saved.chats)
   delete process.env.FAKE_MODE
   await rm(root, { recursive: true, force: true })
 }

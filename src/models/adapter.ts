@@ -1,4 +1,5 @@
 import type { HostContext, PluginLogger } from '../types.js'
+import { forgetSessionCwd, noteSessionCwd, sessionCwd } from './session-cwd.js'
 import { isAbort, isPlainObject } from '../util.js'
 import {
   AUTH_CODE,
@@ -293,7 +294,7 @@ export class CursorLlmAdapter {
       const translator = new StreamChunkTranslator()
       let sawError: { message: string; code: string } | undefined
       for await (const event of streamAgentTurn(probe.bin, wire, turn, {
-        cwd: options.cwd ?? process.cwd(),
+        cwd: options.cwd ?? sessionCwd(options.sessionId) ?? process.cwd(),
         signal: options.signal,
       })) {
         const failure = eventFailure(event)
@@ -505,6 +506,12 @@ export function registerCursorAdapter(host: HostContext, logger: PluginLogger): 
     return
   }
   llm.registerAdapter([PROVIDER_ID], new CursorLlmAdapter(logger))
+  host.on('agent/session-start', (payload: { agent?: { session?: { id?: unknown; header?: { cwd?: string } } } }) => {
+    noteSessionCwd(payload.agent?.session?.id, payload.agent?.session?.header?.cwd)
+  })
+  host.on('agent/disposed', (payload: { agent?: { session?: { id?: unknown } } }) => {
+    forgetSessionCwd(payload.agent?.session?.id)
+  })
   const directory = {
     provider: PROVIDER_ID,
     displayName: 'Cursor',
