@@ -1,6 +1,6 @@
 {
   "name": "@cagase/dsh-cursor",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "DeepSeek Harness plugin: use a Cursor workspace (skills, rules, hooks, MCP) and the Cursor agent CLI as picker + AgentTeams model routes.",
   "license": "MIT",
   "repository": {
@@ -48,12 +48,15 @@
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.2",
-    "@deepseek-ai/dsh-llm": "^0.1.5-rc.1",
-    "@deepseek-ai/dsh-mcp-client": "^0.1.5-rc.1",
-    "@deepseek-ai/dsh-sandbox-policy": "^0.1.5-rc.1",
-    "@deepseek-ai/dsh-skill": "^0.1.5-rc.1",
-    "@deepseek-ai/dsh-user-approval": "^0.1.5-rc.1",
-    "@deepseek-ai/schemastery": "^3.18.2"
+    "@deepseek-ai/dsh-mcp-client": "^0.1.5-rc.1"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/cordis": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-mcp-client": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "^4.0.2",
