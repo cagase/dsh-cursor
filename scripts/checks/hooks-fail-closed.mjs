@@ -88,4 +88,26 @@ await approvalGate(exec, async () => ({ kind: 'allow' }))
 await approvalGate(exec, async () => ({ kind: 'allow' }))
 assert(approvalWarnings.length === 1, `approvalMode warned ${approvalWarnings.length} times`)
 
+const inside = permissions.evaluateCursorPermissions(
+  [],
+  ['Read(src/**)'],
+  { name: 'read', arguments: { file_path: '/repo/src/a.ts' } },
+  '/repo',
+)
+assert(inside?.kind === 'deny', 'session-relative read deny missed')
+const outside = permissions.evaluateCursorPermissions(
+  [],
+  ['Read(src/**)'],
+  { name: 'read', arguments: { file_path: '/other/src/a.ts' } },
+  '/repo',
+)
+assert(outside === undefined, `path outside the session was denied: ${JSON.stringify(outside)}`)
+const ancestor = permissions.evaluateCursorPermissions(
+  [],
+  ['Read(src/**)'],
+  { name: 'read', arguments: { file_path: '/Users/me/src/app/package.json' } },
+  '/Users/me/src/app',
+)
+assert(ancestor === undefined, `ancestor src segment was denied: ${JSON.stringify(ancestor)}`)
+
 console.log('checks/hooks-fail-closed: ok')
