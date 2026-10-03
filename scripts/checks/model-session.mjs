@@ -1,6 +1,6 @@
 import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 const cli = await import(pathToFileURL(join(process.cwd(), 'lib/models/cli.js')).href)
@@ -74,6 +74,40 @@ process.exit(0)
   }
   assert(holder.plan.session.mode === 'resume', `collision left mode ${holder.plan.session.mode}`)
   assert(holder.plan.positional.includes('secret'), `empty chat dropped the bootstrap: ${holder.plan.positional}`)
+  const foreign = {
+    plan: {
+      positional: holder.plan.positional,
+      resumePositional: 'latest',
+      session: { mode: 'new', id },
+      bootstrap: true,
+      deliveredTurns: 2,
+      commit() {},
+    },
+  }
+  await mkdir(join(chats, 'other-worktree', id), { recursive: true })
+  await writeFile(join(chats, 'other-worktree', id, 'store.db'), 'transcript')
+  for await (const _event of cli.streamAgentTurn(agent, 'gpt-5', foreign, { cwd: workspace })) {
+    // drain
+  }
+  assert(foreign.plan.positional.includes('secret'), `another workspace hash dropped the bootstrap: ${foreign.plan.positional}`)
+  const empty = {
+    plan: {
+      positional: holder.plan.positional,
+      resumePositional: 'latest',
+      session: { mode: 'new', id },
+      bootstrap: true,
+      deliveredTurns: 2,
+      commit() {},
+    },
+  }
+  const storePath = cli.cursorChatStorePath(id, workspace)
+  assert(typeof storePath === 'string', 'store path was not derived from the spawn cwd')
+  await mkdir(dirname(storePath), { recursive: true })
+  await writeFile(storePath, '')
+  for await (const _event of cli.streamAgentTurn(agent, 'gpt-5', empty, { cwd: workspace })) {
+    // drain
+  }
+  assert(empty.plan.positional.includes('secret'), `empty store.db dropped the bootstrap: ${empty.plan.positional}`)
   const stored = {
     plan: {
       positional: holder.plan.positional,
@@ -84,8 +118,7 @@ process.exit(0)
       commit() {},
     },
   }
-  await mkdir(join(chats, 'workspace', id), { recursive: true })
-  await writeFile(join(chats, 'workspace', id, 'store.db'), 'transcript')
+  await writeFile(storePath, 'transcript')
   for await (const _event of cli.streamAgentTurn(agent, 'gpt-5', stored, { cwd: workspace })) {
     // drain
   }
