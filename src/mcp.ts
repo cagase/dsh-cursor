@@ -102,16 +102,29 @@ export function registerMcp(
   loader: CursorSettingsLoader,
   toolCallTimeoutMs: number,
 ): void {
-  const mounted = new Map<string, () => void>()
+  const mounted = new Map<string, { dispose: () => void; fingerprint: string }>()
   const reconcile = async (cwd?: string) => {
     const settings = await loader.load(cwd)
     const workspace = cwd ?? process.cwd()
     const desired = new Set<string>()
+    const claimed = new Map<string, string>()
     for (const [name, entry] of settings.mcpServers) {
       const normalized = await normalizeCursorServer(name, entry, workspace, toolCallTimeoutMs)
       if (normalized === undefined) continue
+      const owner = claimed.get(normalized.serverName)
+      if (owner !== undefined && owner !== name) {
+        logger.warn?.(
+          `cursor: MCP server ${JSON.stringify(name)} collides with ${JSON.stringify(owner)} as ${normalized.serverName}; skipped`,
+        )
+        continue
+      }
+      claimed.set(normalized.serverName, name)
       desired.add(normalized.serverName)
-      if (mounted.has(normalized.serverName)) continue
+      const fingerprint = JSON.stringify(normalized.config)
+      const current = mounted.get(normalized.serverName)
+      if (current?.fingerprint === fingerprint) continue
+      current?.dispose()
+      mounted.delete(normalized.serverName)
       try {
         const specifier = '@deepseek-ai/dsh-mcp-client'
         const mcp = (await import(specifier)) as { apply?: (ctx: HostContext, config: unknown) => unknown }
@@ -120,21 +133,24 @@ export function registerMcp(
           return
         }
         const child = ctx.plugin(mcp as never, normalized.config as never)
-        mounted.set(normalized.serverName, () => {
-          try {
-            ;(child as { dispose?: () => void } | undefined)?.dispose?.()
-          } catch {
-            // already gone
-          }
+        mounted.set(normalized.serverName, {
+          fingerprint,
+          dispose: () => {
+            try {
+              ;(child as { dispose?: () => void } | undefined)?.dispose?.()
+            } catch {
+              // already gone
+            }
+          },
         })
         logger.info?.(`cursor: mounted MCP server as mcp__${normalized.serverName}__*`)
       } catch (error) {
         logger.warn?.(`cursor: cannot mount MCP server ${name}: ${errorMessage(error)}`)
       }
     }
-    for (const [serverName, dispose] of mounted) {
+    for (const [serverName, entry] of mounted) {
       if (desired.has(serverName)) continue
-      dispose()
+      entry.dispose()
       mounted.delete(serverName)
     }
   }
@@ -144,7 +160,7 @@ export function registerMcp(
   })
   ctx.effect(
     () => () => {
-      for (const dispose of mounted.values()) dispose()
+      for (const entry of mounted.values()) entry.dispose()
       mounted.clear()
     },
     'cursor mcp servers',
