@@ -99,6 +99,14 @@ try {
   await writeFile(ruleFile, '---\nalwaysApply: false\nglobs:\n  - "**/*.ts"\n---\nbody two\n')
   await rules.attachGlobRules(agent, filePath, {})
   assert(injected.some((message) => textFrom(message).includes('body two')), 'edited glob rule did not attach again')
+  assert(
+    rules.matchingGlobRules(
+      [{ kind: 'glob', name: 'n', file: 'f', label: 'l', body: 'b', globs: ['src/**'] }],
+      '/other/src/a.ts',
+      root,
+    ).length === 0,
+    'glob rule matched a path outside the session',
+  )
 
   const warnings = []
   const mounts = []
@@ -121,7 +129,7 @@ try {
     { load: async () => ({ mcpServers: servers }) },
     1000,
   )
-  mcpListeners.get('agent/session-start')({ agent: { session: { header: { cwd: root } } } })
+  mcpListeners.get('agent/session-start')({ agent: { session: { id: 'mcp-root', header: { cwd: root } } } })
   await waitFor(() => mounts.length >= 1, `MCP server did not mount: ${warnings.join(' | ')}`)
   await waitFor(
     () => warnings.some((message) => message.includes('collides')),
@@ -129,13 +137,13 @@ try {
   )
   assert(mounts.length === 1, `colliding server still mounted: ${mounts.length}`)
   servers = new Map([['foo/bar', { command: 'echo', args: ['changed'], baseDir: root }]])
-  mcpListeners.get('agent/session-start')({ agent: { session: { header: { cwd: root } } } })
+  mcpListeners.get('agent/session-start')({ agent: { session: { id: 'mcp-root', header: { cwd: root } } } })
   await waitFor(() => disposed.length === 1, 'changed MCP config did not remount')
   await waitFor(() => mounts.length === 2, 'replacement MCP server did not mount')
   assert(mounts[1].args[0] === 'changed', `remount kept the old config: ${JSON.stringify(mounts[1])}`)
 
   sessions.forgetLiveSession('reload', root)
-  sessions.forgetLiveSession(undefined, root)
+  sessions.forgetLiveSession('mcp-root', root)
   const cwdA = join(root, 'member-a')
   const cwdB = join(root, 'member-b')
   await mkdir(cwdA, { recursive: true })

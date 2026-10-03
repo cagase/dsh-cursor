@@ -139,8 +139,13 @@ export class CursorSkillProvider implements SkillProvider {
         if (!entry.isFile || !entry.name.toLowerCase().endsWith('.md')) continue
         try {
           const file = join(root.path, entry.name)
-          const text = await readText(file, options.signal)
-          candidates.push(this.agentSummary(root, entry.name.replace(/\.md$/i, ''), file, text))
+          const read = await readText(file, options.signal)
+          if (read.truncated) {
+            this.logger.warn?.(`cursor: cannot read agent entry under ${root.path}: file exceeds the read cap`)
+            sawIncomplete = true
+            continue
+          }
+          candidates.push(this.agentSummary(root, entry.name.replace(/\.md$/i, ''), file, read.text))
         } catch (error) {
           if (isAbort(error)) return { complete: false, continue: false }
           if (isMissing(error)) continue
@@ -168,9 +173,13 @@ export class CursorSkillProvider implements SkillProvider {
     const skillFile = join(dir, 'SKILL.md')
     try {
       if (await fileExists(skillFile, options.signal)) {
-        const text = await readText(skillFile, options.signal)
+        const read = await readText(skillFile, options.signal)
+        if (read.truncated) {
+          this.logger.warn?.(`cursor: cannot read skill entry ${skillFile}: file exceeds the read cap`)
+          return { complete: false, continue: true }
+        }
         try {
-          candidates.push(this.skillSummary(root, dir.split(/[/\\]/).pop() ?? 'skill', skillFile, text))
+          candidates.push(this.skillSummary(root, dir.split(/[/\\]/).pop() ?? 'skill', skillFile, read.text))
         } catch (error) {
           if (isAbort(error)) return { complete: false, continue: false }
           if (isMissing(error)) {
@@ -281,7 +290,9 @@ export class CursorSkillProvider implements SkillProvider {
     }
     let text: string
     try {
-      text = await readText(locator.file, options.signal)
+      const read = await readText(locator.file, options.signal)
+      if (read.truncated) return undefined
+      text = read.text
     } catch (error) {
       if (isAbort(error)) throw error
       return undefined

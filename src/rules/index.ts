@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { basename, dirname, join, normalize } from 'node:path'
+import { basename, dirname, isAbsolute, join, normalize, relative, resolve } from 'node:path'
 import { dirExists, fileExists, listDir, readText, treeStamp } from '../fs.js'
 import { FrontmatterError, parseRuleFile, type ParsedRuleFile } from '../parse.js'
 import { findRepoRoot, projectRulesDir, relativeLabel } from '../roots.js'
@@ -9,7 +9,6 @@ import { catalogName, PROVIDER_NAME } from '../skills/provider.js'
 
 const PLUGIN_SOURCE = 'dsh-cursor:.cursor/rules'
 const MAX_WALK = 32
-const MAX_READ_CHARS = 1024 * 1024
 const MAX_DESCRIPTION_CHARS = 1024
 const RANK_PROJECT_RULE_SKILLS = 227
 
@@ -39,9 +38,9 @@ export async function collectRules(cwd: string, logger: PluginLogger, signal?: A
   const stamped = signal ? undefined : await treeStamp(rulesDir, signal)
   const hit = stamped === undefined ? undefined : rulesCache.get(rulesDir)
   if (hit && hit.stamp === stamped) return hit.rules
-  const rules = await walkRules(rulesDir, cwd, logger, 0, signal)
-  if (stamped !== undefined) rulesCache.set(rulesDir, { stamp: stamped, rules })
-  return rules
+  const walked = await walkRules(rulesDir, cwd, logger, 0, signal)
+  if (stamped !== undefined && walked.complete) rulesCache.set(rulesDir, { stamp: stamped, rules: walked.rules })
+  return walked.rules
 }
 
 async function walkRules(
@@ -50,29 +49,37 @@ async function walkRules(
   logger: PluginLogger,
   depth: number,
   signal?: AbortSignal,
-): Promise<LoadedRule[]> {
-  if (depth > MAX_WALK) return []
+): Promise<{ rules: LoadedRule[]; complete: boolean }> {
+  if (depth > MAX_WALK) return { rules: [], complete: false }
   let entries
   try {
     entries = await listDir(dir, signal)
   } catch (error) {
     if (isAbort(error)) throw error
-    if (isMissing(error)) return []
+    if (isMissing(error)) return { rules: [], complete: true }
     logger.warn?.(`cursor: cannot read rules dir ${dir}: ${errorMessage(error)}`)
-    return []
+    return { rules: [], complete: false }
   }
   const rules: LoadedRule[] = []
+  let complete = true
   for (const entry of entries) {
     if (entry.name.startsWith('.')) continue
     if (entry.isDir) {
-      rules.push(...(await walkRules(join(dir, entry.name), cwd, logger, depth + 1, signal)))
+      const nested = await walkRules(join(dir, entry.name), cwd, logger, depth + 1, signal)
+      rules.push(...nested.rules)
+      complete = complete && nested.complete
       continue
     }
     if (!entry.name.toLowerCase().endsWith('.mdc')) continue
     const file = join(dir, entry.name)
     try {
-      const text = await readText(file, signal)
-      const parsed = parseRuleFile(text)
+      const read = await readText(file, signal)
+      if (read.truncated) {
+        logger.warn?.(`cursor: cannot read rule ${file}: file exceeds the read cap`)
+        complete = false
+        continue
+      }
+      const parsed = parseRuleFile(read.text)
       const stem = basename(entry.name).replace(/\.mdc$/i, '')
       const name = catalogName(parsed.name ?? stem, stem)
       rules.push({
@@ -90,17 +97,19 @@ async function walkRules(
         logger.warn?.(`cursor: skipping invalid rule ${file}: ${error.message}`)
       } else {
         logger.warn?.(`cursor: cannot read rule ${file}: ${errorMessage(error)}`)
+        complete = false
       }
     }
   }
-  return rules
+  return { rules, complete }
 }
 
 export async function loadCursorrules(cwd: string): Promise<string | undefined> {
   const file = join(cwd, '.cursorrules')
   if (!(await fileExists(file))) return undefined
-  const text = await readText(file)
-  return text.trim() === '' ? undefined : text.length > MAX_READ_CHARS ? text.slice(0, MAX_READ_CHARS) : text
+  const read = await readText(file)
+  if (read.truncated || read.text.trim() === '') return undefined
+  return read.text
 }
 
 export async function collectSubdirAgentsMd(cwd: string, logger: PluginLogger): Promise<{ label: string; content: string }[]> {
@@ -120,11 +129,11 @@ export async function collectSubdirAgentsMd(cwd: string, logger: PluginLogger): 
     const file = join(dirEntry, 'AGENTS.md')
     try {
       if (!(await fileExists(file))) continue
-      const text = await readText(file)
-      if (text.trim() === '') continue
+      const read = await readText(file)
+      if (read.truncated || read.text.trim() === '') continue
       sections.push({
         label: relativeLabel(cwd, file),
-        content: text.length > MAX_READ_CHARS ? text.slice(0, MAX_READ_CHARS) : text,
+        content: read.text,
       })
     } catch (error) {
       logger.warn?.(`cursor: cannot read ${file}: ${errorMessage(error)}`)
@@ -173,8 +182,21 @@ export function ruleCatalogCandidates(rules: readonly LoadedRule[]): SkillCandid
   return candidates
 }
 
-export function matchingGlobRules(rules: readonly LoadedRule[], filePath: string): LoadedRule[] {
-  return rules.filter((rule) => rule.kind === 'glob' && rule.globs?.some((glob) => matchGlob(glob, filePath)))
+export function matchingGlobRules(rules: readonly LoadedRule[], filePath: string, cwd?: string): LoadedRule[] {
+  return rules.filter((rule) => rule.kind === 'glob' && rule.globs?.some((glob) => scopedGlobMatch(glob, filePath, cwd)))
+}
+
+function scopedGlobMatch(pattern: string, filePath: string, cwd?: string): boolean {
+  let glob = pattern.replace(/\\/g, '/').trim()
+  while (glob.startsWith('./')) glob = glob.slice(2)
+  if (glob.startsWith('/')) glob = glob.slice(1)
+  let target = filePath.replace(/\\/g, '/')
+  if (cwd !== undefined && cwd !== '') {
+    const rel = relative(resolve(cwd), resolve(target)).replace(/\\/g, '/')
+    if (rel === '' || rel === '..' || rel.startsWith('../') || isAbsolute(rel)) return false
+    target = rel
+  }
+  return matchGlob(glob, target)
 }
 
 const injected = new WeakMap<object, Set<string>>()
@@ -227,7 +249,7 @@ export async function attachGlobRules(agent: AgentLike, filePath: string, logger
   const cwd = agent.session.header.cwd
   if (!cwd) return
   try {
-    const rules = matchingGlobRules(await collectRules(cwd, logger), filePath)
+    const rules = matchingGlobRules(await collectRules(cwd, logger), filePath, cwd)
     for (const rule of rules) {
       const hash = createHash('sha256').update(rule.body).digest('hex').slice(0, 16)
       if (!remember(agent, `rule:${rule.file}:${hash}`)) continue

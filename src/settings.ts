@@ -181,7 +181,12 @@ export class CursorSettingsLoader {
     let text: string
     try {
       if (!(await fileExists(source.path))) return undefined
-      text = await readText(source.path)
+      const read = await readText(source.path)
+      if (read.truncated) {
+        this.logger.warn?.(`cursor: cannot read config ${source.path}: file exceeds the read cap`)
+        return undefined
+      }
+      text = read.text
     } catch (error) {
       this.logger.warn?.(`cursor: cannot read config ${source.path}: ${errorMessage(error)}`)
       return undefined

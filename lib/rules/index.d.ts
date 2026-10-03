@@ -22,7 +22,7 @@ export declare function renderAlwaysApply(sections: {
     content: string;
 }[]): string;
 export declare function ruleCatalogCandidates(rules: readonly LoadedRule[]): SkillCandidate[];
-export declare function matchingGlobRules(rules: readonly LoadedRule[], filePath: string): LoadedRule[];
+export declare function matchingGlobRules(rules: readonly LoadedRule[], filePath: string, cwd?: string): LoadedRule[];
 export declare function injectSessionRules(agent: AgentLike, logger: PluginLogger, source?: string): Promise<void>;
 export declare function attachGlobRules(agent: AgentLike, filePath: string, logger: PluginLogger): Promise<void>;
 export declare function ruleWatchRoots(cwd?: string): Promise<string[]>;
