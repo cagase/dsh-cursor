@@ -59,7 +59,7 @@ export async function runEventHooks(spec: HookRunSpec, logger: PluginLogger): Pr
 }
 
 function commandUsesHookDir(command: string): boolean {
-  return /(^|\s)(?:\.\.?\/|\.[A-Za-z0-9_])/.test(command.trim())
+  return /(^|\s)\.\.?\//.test(command.trim())
 }
 
 function resolveHookCwd(command: string, hookDir: string | undefined, sessionCwd: string): string {

@@ -54,6 +54,22 @@ try {
   const { readFile } = await import('node:fs/promises')
   assert((await readFile(marker, 'utf8')).trim() === 'ran', 'relative hook did not run in hookDir')
 
+  await mkdir(join(sessionDir, '.cursor', 'hooks'), { recursive: true })
+  await writeFile(join(sessionDir, '.cursor', 'hooks', 'noop.sh'), '#!/bin/sh\nexit 0\n')
+  await chmod(join(sessionDir, '.cursor', 'hooks', 'noop.sh'), 0o755)
+  const projectStyle = await run.runEventHooks(
+    {
+      event: 'sessionStart',
+      groups: [{ cwd: hookDir, hooks: [{ command: 'sh .cursor/hooks/noop.sh' }] }],
+      matchedValue: undefined,
+      input: {},
+      cwd: sessionDir,
+      defaultTimeoutMs: 5000,
+    },
+    {},
+  )
+  assert(projectStyle[0]?.exitCode === 0, `project-style hook left the session: ${JSON.stringify(projectStyle)}`)
+
   const noisy = await run.runEventHooks(
     {
       event: 'sessionStart',
