@@ -1,22 +1,18 @@
 const sessions = new Map<string, string>()
 
-function sessionKey(id: unknown, cwd: string | undefined): string {
-  if (id !== undefined && String(id) !== '') return String(id)
-  return cwd ?? ''
+function sessionKey(id: unknown): string {
+  if (id === undefined || String(id) === '') return ''
+  return String(id)
 }
 
 export function noteLiveSession(id: unknown, cwd: string | undefined): void {
-  const key = sessionKey(id, cwd)
-  if (key === '') return
-  if (cwd === undefined || cwd === '') {
-    sessions.delete(key)
-    return
-  }
+  const key = sessionKey(id)
+  if (key === '' || cwd === undefined || cwd === '') return
   sessions.set(key, cwd)
 }
 
-export function forgetLiveSession(id: unknown, cwd: string | undefined): void {
-  const key = sessionKey(id, cwd)
+export function forgetLiveSession(id: unknown, _cwd?: string): void {
+  const key = sessionKey(id)
   if (key !== '') sessions.delete(key)
 }
 
