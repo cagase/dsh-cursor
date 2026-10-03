@@ -40,7 +40,9 @@ export async function attachMatchingSkills(
     if (!file || locator?.kind === 'rule' || locator?.kind === 'agent') continue
     if (!remember(agent, `skill:${file}`)) continue
     try {
-      const parsed = parseSkillFile(await readText(file), candidate.name)
+      const read = await readText(file)
+      if (read.truncated) throw new Error(`skill file exceeds the read cap: ${file}`)
+      const parsed = parseSkillFile(read.text, candidate.name)
       const name = catalogName(parsed.frontmatter.name, candidate.name)
       agent.inject(
         reminder(

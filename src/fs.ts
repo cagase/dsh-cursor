@@ -11,9 +11,15 @@ export interface DirEntry {
   isFile: boolean
 }
 
-export async function readText(path: string, signal?: AbortSignal, maxChars = DEFAULT_MAX_READ_CHARS): Promise<string> {
+export interface TextRead {
+  text: string
+  truncated: boolean
+}
+
+export async function readText(path: string, signal?: AbortSignal, maxChars = DEFAULT_MAX_READ_CHARS): Promise<TextRead> {
   const text = await readFile(path, { encoding: 'utf8', signal })
-  return text.length <= maxChars ? text : text.slice(0, maxChars)
+  if (text.length <= maxChars) return { text, truncated: false }
+  return { text: text.slice(0, maxChars), truncated: true }
 }
 
 /** Cheap identity for a directory tree: names, sizes, and mtimes, not file bodies. */
