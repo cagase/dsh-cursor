@@ -1,0 +1,87 @@
+{"type":"block-start","index":0,"blockType":"reasoning"}
+{"type":"reasoning-delta","index":0,"text":"Running `echo dsh-tool-ok`"}
+{"type":"reasoning-delta","index":0,"text":" to capture the exact"}
+{"type":"reasoning-delta","index":0,"text":" output."}
+{"type":"block-start","index":1,"blockType":"text"}
+{"type":"text-delta","index":1,"text":"I'll"}
+{"type":"text-delta","index":1,"text":" run"}
+{"type":"text-delta","index":1,"text":" that"}
+{"type":"text-delta","index":1,"text":" command"}
+{"type":"text-delta","index":1,"text":" and"}
+{"type":"text-delta","index":1,"text":" report"}
+{"type":"text-delta","index":1,"text":" the"}
+{"type":"text-delta","index":1,"text":" exact"}
+{"type":"text-delta","index":1,"text":" output"}
+{"type":"text-delta","index":1,"text":"."}
+{"type":"reasoning-delta","index":0,"text":"The shell command was"}
+{"type":"reasoning-delta","index":0,"text":" rejected."}
+{"type":"reasoning-delta","index":0,"text":"\n\nThe command was rejected"}
+{"type":"reasoning-delta","index":0,"text":" with no explanation."}
+{"type":"reasoning-delta","index":0,"text":" I will try once more"}
+{"type":"reasoning-delta","index":0,"text":" before reporting the"}
+{"type":"reasoning-delta","index":0,"text":" failure."}
+{"type":"text-delta","index":1,"text":"The"}
+{"type":"text-delta","index":1,"text":" shell"}
+{"type":"text-delta","index":1,"text":" call"}
+{"type":"text-delta","index":1,"text":" was"}
+{"type":"text-delta","index":1,"text":" rejected"}
+{"type":"text-delta","index":1,"text":" with"}
+{"type":"text-delta","index":1,"text":" no"}
+{"type":"text-delta","index":1,"text":" output"}
+{"type":"text-delta","index":1,"text":"."}
+{"type":"text-delta","index":1,"text":" I'll"}
+{"type":"text-delta","index":1,"text":" try"}
+{"type":"text-delta","index":1,"text":" the"}
+{"type":"text-delta","index":1,"text":" same"}
+{"type":"text-delta","index":1,"text":" command"}
+{"type":"text-delta","index":1,"text":" once"}
+{"type":"text-delta","index":1,"text":" more"}
+{"type":"text-delta","index":1,"text":"."}
+{"type":"reasoning-delta","index":0,"text":"The command was rejected"}
+{"type":"reasoning-delta","index":0,"text":" twice."}
+{"type":"reasoning-delta","index":0,"text":"\n\nI cannot provide the"}
+{"type":"reasoning-delta","index":0,"text":" exact output because"}
+{"type":"reasoning-delta","index":0,"text":" the shell tool rejected"}
+{"type":"reasoning-delta","index":0,"text":" the command."}
+{"type":"text-delta","index":1,"text":"The"}
+{"type":"text-delta","index":1,"text":" shell"}
+{"type":"text-delta","index":1,"text":" tool"}
+{"type":"text-delta","index":1,"text":" rejected"}
+{"type":"text-delta","index":1,"text":" the"}
+{"type":"text-delta","index":1,"text":" command"}
+{"type":"text-delta","index":1,"text":" both"}
+{"type":"text-delta","index":1,"text":" times"}
+{"type":"text-delta","index":1,"text":","}
+{"type":"text-delta","index":1,"text":" so"}
+{"type":"text-delta","index":1,"text":" there"}
+{"type":"text-delta","index":1,"text":" is"}
+{"type":"text-delta","index":1,"text":" no"}
+{"type":"text-delta","index":1,"text":" output"}
+{"type":"text-delta","index":1,"text":" to"}
+{"type":"text-delta","index":1,"text":" report"}
+{"type":"text-delta","index":1,"text":"."}
+{"type":"text-delta","index":1,"text":" The"}
+{"type":"text-delta","index":1,"text":" rejection"}
+{"type":"text-delta","index":1,"text":" message"}
+{"type":"text-delta","index":1,"text":" was"}
+{"type":"text-delta","index":1,"text":" empty"}
+{"type":"text-delta","index":1,"text":" (`"}
+{"type":"text-delta","index":1,"text":"Rejected"}
+{"type":"text-delta","index":1,"text":":`"}
+{"type":"text-delta","index":1,"text":"),"}
+{"type":"text-delta","index":1,"text":" and"}
+{"type":"text-delta","index":1,"text":" `"}
+{"type":"text-delta","index":1,"text":"echo"}
+{"type":"text-delta","index":1,"text":" d"}
+{"type":"text-delta","index":1,"text":"sh"}
+{"type":"text-delta","index":1,"text":"-"}
+{"type":"text-delta","index":1,"text":"tool"}
+{"type":"text-delta","index":1,"text":"-"}
+{"type":"text-delta","index":1,"text":"ok"}
+{"type":"text-delta","index":1,"text":"`"}
+{"type":"text-delta","index":1,"text":" never"}
+{"type":"text-delta","index":1,"text":" ran"}
+{"type":"text-delta","index":1,"text":"."}
+{"type":"block-end","index":0,"block":{"type":"reasoning","text":"Running `echo dsh-tool-ok` to capture the exact output.The shell command was rejected.\n\nThe command was rejected with no explanation. I will try once more before reporting the failure.The command was rejected twice.\n\nI cannot provide the exact output because the shell tool rejected the command."}}
+{"type":"block-end","index":1,"block":{"type":"text","text":"I'll run that command and report the exact output.The shell call was rejected with no output. I'll try the same command once more.The shell tool rejected the command both times, so there is no output to report. The rejection message was empty (`Rejected:`), and `echo dsh-tool-ok` never ran."}}
+{"type":"finish","reason":{"kind":"stop"}}

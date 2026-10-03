@@ -1,0 +1,58 @@
+===== --system-prompt : 1 occurrence(s) =====
+ing). Parameterized models accept quoted bracket overrides, e.g. 'claude-opus-4-8[context=1m,effort=high,fast=false]'").addOption(new h.c$("--dev-raw-model-slug <slug>","Pass through a raw dev model slug for backend debugging").hideHelp()).option("--list-models","List available models and exit",!1).addOption(new h.c$("--system-prompt <file>","Replace system prompt with contents of file (Anysphere/OpenAI team only)").hideHelp()).addOption(new h.c$("--conversation-history-file <file>","Import prior conversation history from the given file").hideHelp()).addOption(new h.c$("--harness <harness>","Apply an internal harness override to the
+  ----
+
+===== --conversation-history-file : 1 occurrence(s) =====
+w h.c$("--dev-raw-model-slug <slug>","Pass through a raw dev model slug for backend debugging").hideHelp()).option("--list-models","List available models and exit",!1).addOption(new h.c$("--system-prompt <file>","Replace system prompt with contents of file (Anysphere/OpenAI team only)").hideHelp()).addOption(new h.c$("--conversation-history-file <file>","Import prior conversation history from the given file").hideHelp()).addOption(new h.c$("--harness <harness>","Apply an internal harness override to the session.").hideHelp()).addOption(new h.c$("--computer-use-coords <mode>","Set computer-use coordinates to pixels or percent.").choi
+  ----
+
+===== --new-session-id : 1 occurrence(s) =====
+ h.c$("-c, --cloud","Deprecated; see chat.ts for guidance.").default(!1).hideHelp()).addOption(new h.c$("-b, --background","Deprecated; see chat.ts for guidance.").default(!1).hideHelp()).option("--resume [chatId]","Select a session to resume",!1).option("--continue","Continue previous session",!1).addOption(new h.c$("--new-session-id <uuid>","Create a new session with a caller-provided ID").hideHelp()).option("--model <model>","Model to use (e.g., gpt-5, sonnet-4-thinking). Parameterized models accept quoted bracket overrides, e.g. 'claude-opus-4-8[context=1m,effort=high,fast=false]'").addOption(new h.c$("--dev-raw-model-slug <slug
+  ----
+
+===== --exclude-workspace-context : 1 occurrence(s) =====
+tion history from the given file").hideHelp()).addOption(new h.c$("--harness <harness>","Apply an internal harness override to the session.").hideHelp()).addOption(new h.c$("--computer-use-coords <mode>","Set computer-use coordinates to pixels or percent.").choices(["pixels","percent"]).hideHelp()).addOption(new h.c$("--exclude-workspace-context","Strip all workspace-sourced context (rules, skills, transcripts, notes) from the session.").default(!1).hideHelp()).addOption(new h.c$("--allowed-tools <tool>","Allow only proto ToolCall oneof tool(s) for this session (internal only; can be used multiple times or comma-separated)").argPars
+  ----
+
+===== --single-turn : 1 occurrence(s) =====
+nking","Include model thinking blocks in the final JSON result (only works with --print and --output-format json)").default(!1).hideHelp()).addOption(new h.c$("--printenv","Capture environment snapshot after each terminal command (only available with --print/headless mode)").default(!1).hideHelp()).addOption(new h.c$("--single-turn","Finish after the initial user turn and delegated subagents (skip background shell wait and other follow-up turns)").default(!1).hideHelp()).addOption(new h.c$("--background-shell-timeout <seconds>","Maximum time to keep waiting for running background shells after the final turn before aborting them and 
+  ----
+
+===== --show-thinking : 1 occurrence(s) =====
+access to all tools, including write and shell.",!1).option("--output-format <format>","Output format (only works with --print): text | json | stream-json","text").option("--stream-partial-output","Stream partial output as individual text deltas (only works with --print and stream-json format)",!1).addOption(new h.c$("--show-thinking","Include model thinking blocks in the final JSON result (only works with --print and --output-format json)").default(!1).hideHelp()).addOption(new h.c$("--printenv","Capture environment snapshot after each terminal command (only available with --print/headless mode)").default(!1).hideHelp()).addOption(
+  ----
+
+===== --allowed-tools : 1 occurrence(s) =====
+w h.c$("--computer-use-coords <mode>","Set computer-use coordinates to pixels or percent.").choices(["pixels","percent"]).hideHelp()).addOption(new h.c$("--exclude-workspace-context","Strip all workspace-sourced context (rules, skills, transcripts, notes) from the session.").default(!1).hideHelp()).addOption(new h.c$("--allowed-tools <tool>","Allow only proto ToolCall oneof tool(s) for this session (internal only; can be used multiple times or comma-separated)").argParser(((t,e)=>[...e??[],t])).hideHelp()).addOption(new h.c$("--exclude-tools <tool>","Exclude proto ToolCall oneof tool(s) from this session (internal only; can be used 
+  ----
+
+===== --exclude-tools : 1 occurrence(s) =====
+context (rules, skills, transcripts, notes) from the session.").default(!1).hideHelp()).addOption(new h.c$("--allowed-tools <tool>","Allow only proto ToolCall oneof tool(s) for this session (internal only; can be used multiple times or comma-separated)").argParser(((t,e)=>[...e??[],t])).hideHelp()).addOption(new h.c$("--exclude-tools <tool>","Exclude proto ToolCall oneof tool(s) from this session (internal only; can be used multiple times or comma-separated)").argParser(((t,e)=>[...e??[],t])).hideHelp()).addOption(new h.c$("--data-dir <path>","Set the Cursor data directory used for project metadata in this session (internal only)").
+  ----
+
+===== --background-shell-timeout : 1 occurrence(s) =====
+ture environment snapshot after each terminal command (only available with --print/headless mode)").default(!1).hideHelp()).addOption(new h.c$("--single-turn","Finish after the initial user turn and delegated subagents (skip background shell wait and other follow-up turns)").default(!1).hideHelp()).addOption(new h.c$("--background-shell-timeout <seconds>","Maximum time to keep waiting for running background shells after the final turn before aborting them and finishing (only works with --print). Waits for background subagents are unaffected and remain unbounded.").argParser((t=>{const e=parseInt(t,10);if(Number.isNaN(e)||e<=0)throw 
+  ----
+
+===== --output-format : 2 occurrence(s) =====
+ow insecure HTTPS connections").default(!1).hideHelp()).addOption(new h.c$("--repo-http-version <version>","HTTP version to use (1.1 or 2)").default("1.1").hideHelp()).option("-p, --print","Print responses to console (for scripts or non-interactive use). Has access to all tools, including write and shell.",!1).option("--output-format <format>","Output format (only works with --print): text | json | stream-json","text").option("--stream-partial-output","Stream partial output as individual text deltas (only works with --print and stream-json format)",!1).addOption(new h.c$("--show-thinking","Include model thinking blocks in the final 
+  ----
+(only works with --print): text | json | stream-json","text").option("--stream-partial-output","Stream partial output as individual text deltas (only works with --print and stream-json format)",!1).addOption(new h.c$("--show-thinking","Include model thinking blocks in the final JSON result (only works with --print and --output-format json)").default(!1).hideHelp()).addOption(new h.c$("--printenv","Capture environment snapshot after each terminal command (only available with --print/headless mode)").default(!1).hideHelp()).addOption(new h.c$("--single-turn","Finish after the initial user turn and delegated subagents (skip background 
+  ----
+
+===== --stream-partial-output : 1 occurrence(s) =====
+P version to use (1.1 or 2)").default("1.1").hideHelp()).option("-p, --print","Print responses to console (for scripts or non-interactive use). Has access to all tools, including write and shell.",!1).option("--output-format <format>","Output format (only works with --print): text | json | stream-json","text").option("--stream-partial-output","Stream partial output as individual text deltas (only works with --print and stream-json format)",!1).addOption(new h.c$("--show-thinking","Include model thinking blocks in the final JSON result (only works with --print and --output-format json)").default(!1).hideHelp()).addOption(new h.c$("--
+  ----
+
+===== --resume : 3 occurrence(s) =====
+ (read-only).").choices(["plan","ask"])).option("--plan","Start in plan mode (shorthand for --mode=plan).",!1).addOption(new h.c$("-c, --cloud","Deprecated; see chat.ts for guidance.").default(!1).hideHelp()).addOption(new h.c$("-b, --background","Deprecated; see chat.ts for guidance.").default(!1).hideHelp()).option("--resume [chatId]","Select a session to resume",!1).option("--continue","Continue previous session",!1).addOption(new h.c$("--new-session-id <uuid>","Create a new session with a caller-provided ID").hideHelp()).option("--model <model>","Model to use (e.g., gpt-5, sonnet-4-thinking). Parameterized models accept quoted b
+  ----
+a)throw new Error("Persistent-session launch state has an invalid shape");return a}function R(t){return t.environment.CURSOR_CLI&&"agent"===t.argv[0]?{prefix:["agent"],tokens:t.argv.slice(1)}:{prefix:[],tokens:[...t.argv]}}function J(t){const e=t.indexOf("--"),r=-1===e?t.length:e;for(let e=0;e<r;e+=1){const r=t[e];if("--resume"===r){const r=t[e+1];return void 0!==r&&y.test(r)?r:void 0}if(r?.startsWith("--resume=")){const t=r.slice(9);return y.test(t)?t:void 0}}}function T(t){const e=o().realpathSync(t);if(!o().statSync(e).isDirectory())throw new Error(`Workspace is not a directory: ${t}`);return e}function q(t){return`'${t.replace(/
+  ----
+ction R(t){return t.environment.CURSOR_CLI&&"agent"===t.argv[0]?{prefix:["agent"],tokens:t.argv.slice(1)}:{prefix:[],tokens:[...t.argv]}}function J(t){const e=t.indexOf("--"),r=-1===e?t.length:e;for(let e=0;e<r;e+=1){const r=t[e];if("--resume"===r){const r=t[e+1];return void 0!==r&&y.test(r)?r:void 0}if(r?.startsWith("--resume=")){const t=r.slice(9);return y.test(t)?t:void 0}}}function T(t){const e=o().realpathSync(t);if(!o().statSync(e).isDirectory())throw new Error(`Workspace is not a directory: ${t}`);return e}function q(t){return`'${t.replace(/'/g,"'\\''")}'`}function j(t){const e=t.environment??process.env;return k(d().join(k(t
+  ----
+
+===== --continue : 1 occurrence(s) =====
+art in plan mode (shorthand for --mode=plan).",!1).addOption(new h.c$("-c, --cloud","Deprecated; see chat.ts for guidance.").default(!1).hideHelp()).addOption(new h.c$("-b, --background","Deprecated; see chat.ts for guidance.").default(!1).hideHelp()).option("--resume [chatId]","Select a session to resume",!1).option("--continue","Continue previous session",!1).addOption(new h.c$("--new-session-id <uuid>","Create a new session with a caller-provided ID").hideHelp()).option("--model <model>","Model to use (e.g., gpt-5, sonnet-4-thinking). Parameterized models accept quoted bracket overrides, e.g. 'claude-opus-4-8[context=1m,effort=hi
+  ----
+

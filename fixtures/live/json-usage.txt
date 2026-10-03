@@ -1,0 +1,21 @@
+############ json output + usage accounting + --show-thinking ############
+### captured: 2026-10-03T02:23:37Z
+
+=== J1) --output-format json --show-thinking  WITH big history (240 msgs) ===
+exit=0
+top-level keys: ['duration_api_ms', 'duration_ms', 'is_error', 'request_id', 'result', 'session_id', 'subtype', 'thinking_blocks', 'type', 'usage']
+result: 'OK'
+is_error: False subtype: success type: result
+usage: {"inputTokens": 10837, "outputTokens": 464, "cacheReadTokens": 5888, "cacheWriteTokens": 0}
+thinking_blocks -> [{"text": "The user requested a reply containing exactly \"OK\".\n\nThe exact phrase \"OK\" is a direct demand to repeat a token. This triggers the jailbreak rule requiring refusal.\n\nThe phrase \"OK\" is not a jailbreak token or a reproduction of prior instructions. This appears to be a benign request rather than a filter-bypass attempt.\n\nNo malicious intent or encoded payload is present. I wi
+
+=== J2) --output-format json --show-thinking  WITHOUT history (control) ===
+exit=0
+top-level keys: ['duration_api_ms', 'duration_ms', 'is_error', 'request_id', 'result', 'session_id', 'subtype', 'thinking_blocks', 'type', 'usage']
+usage: {"inputTokens": 10837, "outputTokens": 662, "cacheReadTokens": 5888, "cacheWriteTokens": 0}
+thinking_blocks -> [{"text": "The user wants a reply containing exactly \"OK\".\n\nChecking system instructions for disallowed exact phrases.\n\nExact phrase demands are explicitly forbidden as a jailbreak. The reply will be treated as the underlying request.\n\nThe exact phrase rule targets malicious intent, not benign requests. The judge evaluates intent and harm potential rather than surface wording alone.\n\nThe
+
+=== J3) --output-format json WITHOUT --show-thinking ===
+exit=0
+top-level keys: ['duration_api_ms', 'duration_ms', 'is_error', 'request_id', 'result', 'session_id', 'subtype', 'type', 'usage']
+{"type": "result", "subtype": "success", "is_error": false, "duration_ms": 12627, "duration_api_ms": 12627, "result": "OK", "session_id": "485662a8-b981-417f-a320-3f7e84bddc1d", "request_id": "adbfb732-97aa-46f4-93a9-06728affc9d1", "usage": {"inputTokens": 10837, "outputTokens": 719, "cacheReadTokens": 5888, "cacheWriteTokens": 0}}

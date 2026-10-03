@@ -1,0 +1,3 @@
+["status","--format","json"]
+["--list-models"]
+["--print","--output-format","stream-json","--stream-partial-output","--trust","--force","--model","grok-4.7","--workspace","/Users/theluiscarbonell/Projects/cagase/dsh-cursor","hello"]

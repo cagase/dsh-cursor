@@ -1,0 +1,106 @@
+{
+  "startedAt": "2026-10-03T02:54:52.852Z",
+  "purpose": "live --new-session-id validation: adapter-minted v5 vs v4 control",
+  "probes": [
+    {
+      "label": "adapter-minted-v5-new-session",
+      "argv": [
+        "--print",
+        "--mode",
+        "ask",
+        "--trust",
+        "--model",
+        "grok-4.7",
+        "--new-session-id",
+        "39d32074-6362-53fa-8eb7-84ae8c182d38",
+        "Reply with exactly: OK"
+      ],
+      "exitCode": 1,
+      "signal": null,
+      "ms": 356,
+      "stdout": "",
+      "stderr": "Error: Invalid --new-session-id \"39d32074-6362-53fa-8eb7-84ae8c182d38\": expected a UUIDv4.\n"
+    },
+    {
+      "label": "v4-control-new-session",
+      "argv": [
+        "--print",
+        "--mode",
+        "ask",
+        "--trust",
+        "--model",
+        "grok-4.7",
+        "--new-session-id",
+        "39d32074-6362-43fa-8eb7-84ae8c182d38",
+        "Reply with exactly: OK"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "ms": 11063,
+      "stdout": "OK\n",
+      "stderr": ""
+    },
+    {
+      "label": "adapter-minted-v5-resume",
+      "argv": [
+        "--print",
+        "--mode",
+        "ask",
+        "--trust",
+        "--model",
+        "grok-4.7",
+        "--resume",
+        "39d32074-6362-53fa-8eb7-84ae8c182d38",
+        "Reply with exactly: OK"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "ms": 4404,
+      "stdout": "OK\n",
+      "stderr": ""
+    },
+    {
+      "label": "v4-control-resume",
+      "argv": [
+        "--print",
+        "--mode",
+        "ask",
+        "--trust",
+        "--model",
+        "grok-4.7",
+        "--resume",
+        "39d32074-6362-43fa-8eb7-84ae8c182d38",
+        "Reply with exactly: OK"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "ms": 3739,
+      "stdout": "OK\n",
+      "stderr": ""
+    },
+    {
+      "label": "v5-new-session-json",
+      "argv": [
+        "--print",
+        "--output-format",
+        "stream-json",
+        "--mode",
+        "ask",
+        "--trust",
+        "--model",
+        "grok-4.7",
+        "--new-session-id",
+        "76ede8fd-e870-5b78-8385-209960ce59b5",
+        "Reply with exactly: OK"
+      ],
+      "exitCode": 1,
+      "signal": null,
+      "ms": 302,
+      "stdout": "",
+      "stderr": "Error: Invalid --new-session-id \"76ede8fd-e870-5b78-8385-209960ce59b5\": expected a UUIDv4.\n"
+    }
+  ],
+  "errors": [],
+  "bin": "/Users/theluiscarbonell/.local/bin/agent",
+  "finishedAt": "2026-10-03T02:55:12.723Z"
+}

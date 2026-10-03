@@ -1,0 +1,13 @@
+<dsh_system_prompt>
+DSH SYSTEM PROMPT MARKER: you are a test harness.
+</dsh_system_prompt>
+
+<dsh_conversation_history>
+User: HISTORY USER MARKER
+
+Assistant: HISTORY ASSISTANT MARKER
+</dsh_conversation_history>
+
+<dsh_user_message>
+CURRENT USER MARKER
+</dsh_user_message>

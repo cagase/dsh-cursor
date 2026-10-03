@@ -1,0 +1,29 @@
+total lines: 95 non-json: 0
+
+=== event type counts ===
+assistant              69   top-level fields: message, session_id, timestamp_ms, type
+thinking/delta         16   top-level fields: session_id, subtype, text, timestamp_ms, type
+thinking/completed     3   top-level fields: session_id, subtype, timestamp_ms, type
+tool_call/started      2   top-level fields: call_id, model_call_id, session_id, subtype, timestamp_ms, tool_call, type
+tool_call/completed    2   top-level fields: call_id, model_call_id, session_id, subtype, timestamp_ms, tool_call, type
+system/init            1   top-level fields: apiKeySource, cwd, model, permissionMode, session_id, subtype, type
+user                   1   top-level fields: message, session_id, type
+result/success         1   top-level fields: duration_api_ms, duration_ms, is_error, request_id, result, session_id, subtype, type, usage
+
+=== one sample per event type (compact, 700 bytes each) ===
+---- system/init ----
+{"type": "system", "subtype": "init", "apiKeySource": "login", "cwd": "/Users/theluiscarbonell/Projects/cagase/dsh-cursor", "session_id": "17e650d2-1c02-439a-bfc7-989b3de62988", "model": "Grok 4.7 256K Extra High", "permissionMode": "default"}
+---- user ----
+{"type": "user", "message": {"role": "user", "content": [{"type": "text", "text": "Think briefly, then use your shell tool to run the exact command: echo dsh-tool-ok  \u2014 then tell me the exact output."}]}, "session_id": "17e650d2-1c02-439a-bfc7-989b3de62988"}
+---- thinking/delta ----
+{"type": "thinking", "subtype": "delta", "text": "Running `echo dsh-tool-ok`", "session_id": "17e650d2-1c02-439a-bfc7-989b3de62988", "timestamp_ms": 1790994267353}
+---- thinking/completed ----
+{"type": "thinking", "subtype": "completed", "session_id": "17e650d2-1c02-439a-bfc7-989b3de62988", "timestamp_ms": 1790994267358}
+---- assistant ----
+{"type": "assistant", "message": {"role": "assistant", "content": [{"type": "text", "text": "I'll"}]}, "session_id": "17e650d2-1c02-439a-bfc7-989b3de62988", "timestamp_ms": 1790994267358}
+---- tool_call/started ----
+{"type": "tool_call", "subtype": "started", "call_id": "call-c6c3a8b7-2bf1-4c8b-ba97-2dbd3af70803-0\nfc_d85581e1-8476-909d-919b-77420c9a2b50_0", "tool_call": {"shellToolCall": {"args": {"command": "echo dsh-tool-ok", "workingDirectory": "", "timeout": 30000, "toolCallId": "call-c6c3a8b7-2bf1-4c8b-ba97-2dbd3af70803-0\nfc_d85581e1-8476-909d-919b-77420c9a2b50_0", "simpleCommands": ["echo"], "hasInputRedirect": false, "hasOutputRedirect": false, "parsingResult": {"parsingFailed": false, "executableCommands": [{"name": "echo", "args": [{"type": "word", "value": "dsh-tool-ok"}], "fullText": "echo dsh-tool-ok"}], "hasRedirects": false, "hasCommandSubstitution": false, "redirects": []}, "fileOutputT
+---- tool_call/completed ----
+{"type": "tool_call", "subtype": "completed", "call_id": "call-c6c3a8b7-2bf1-4c8b-ba97-2dbd3af70803-0\nfc_d85581e1-8476-909d-919b-77420c9a2b50_0", "tool_call": {"shellToolCall": {"result": {"rejected": {"command": "echo dsh-tool-ok", "workingDirectory": "/Users/theluiscarbonell/Projects/cagase/dsh-cursor", "reason": "", "isReadonly": false}}}, "hookAdditionalContexts": [], "toolCallId": "call-c6c3a8b7-2bf1-4c8b-ba97-2dbd3af70803-0\nfc_d85581e1-8476-909d-919b-77420c9a2b50_0", "startedAtMs": "1790994267227", "completedAtMs": "1790994268322"}, "model_call_id": "768566b4-7bc8-4f08-8a92-714ead64c93b-0-htx3", "session_id": "17e650d2-1c02-439a-bfc7-989b3de62988", "timestamp_ms": 1790994268343}
+---- result/success ----
+{"type": "result", "subtype": "success", "duration_ms": 11854, "duration_api_ms": 11854, "is_error": false, "result": "I'll run that command and report the exact output.The shell call was rejected with no output. I'll try the same command once more.The shell tool rejected the command both times, so there is no output to report. The rejection message was empty (`Rejected:`), and `echo dsh-tool-ok` never ran.", "session_id": "17e650d2-1c02-439a-bfc7-989b3de62988", "request_id": "768566b4-7bc8-4f08-8a92-714ead64c93b", "usage": {"inputTokens": 27341, "outputTokens": 482, "cacheReadTokens": 22400, "cacheWriteTokens": 0}}

@@ -1,0 +1,1 @@
+{"messages":[{"id":"a1","role":"user","content":[{"type":"text","text":"Remember this sentence: the spare key is under the blue pot. Reply with just OK."}]},{"id":"a2","role":"assistant","content":[{"type":"text","text":"OK"}]},{"id":"a5","role":"user","content":[{"type":"text","text":"Name one item in that sentence. Reply with just the item."}]}]}

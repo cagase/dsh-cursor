@@ -1,0 +1,33 @@
+############ session continuity (benign fact) ############
+### captured: 2026-10-03T02:19:20Z
+### uuid: 5c834555-35b2-4b2b-a3cc-31b99449c40f
+
+=== T1) --new-session-id 5c834555-35b2-4b2b-a3cc-31b99449c40f  'My favorite color is aubergine. Reply with just OK.' ===
+OK
+exit=0
+### store.db created?
+/Users/theluiscarbonell/.cursor/chats/766fe73c06573698c270309a02f752f8/5c834555-35b2-4b2b-a3cc-31b99449c40f
+/Users/theluiscarbonell/.cursor/chats/766fe73c06573698c270309a02f752f8/
+/Users/theluiscarbonell/.cursor/chats/60d3c5a4451163a9321bd340c16b749e/
+/Users/theluiscarbonell/.cursor/chats/1bbd8308ddb47440b7e6176f33555ee8/
+
+=== T2) --resume 5c834555-35b2-4b2b-a3cc-31b99449c40f  'What is my favorite color? Reply with just the color.' ===
+aubergine
+exit=0
+
+=== T3) --continue  'What is my favorite color?' ===
+aubergine
+exit=0
+
+=== T4) control: no resume/continue, fresh chat ===
+aubergine
+exit=0
+
+############ conversation-history re-test with benign fact ############
+=== C1) with history file (color) ===
+aubergine
+exit=0
+
+=== C2) control without history file ===
+blue
+exit=0

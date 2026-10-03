@@ -1,0 +1,18 @@
+{
+  "messages": [
+    {
+      "user": {
+        "content": [
+          { "text": { "text": "Remember this codeword: PLATYPUS-7731. Reply with just: OK" } }
+        ]
+      }
+    },
+    {
+      "assistant": {
+        "content": [
+          { "text": { "text": "OK" } }
+        ]
+      }
+    }
+  ]
+}

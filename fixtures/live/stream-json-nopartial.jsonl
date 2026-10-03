@@ -1,0 +1,8 @@
+{"type":"system","subtype":"init","apiKeySource":"login","cwd":"/Users/theluiscarbonell/Projects/cagase/dsh-cursor","session_id":"bc35b7fc-795f-4ee1-96f2-ed549a69b12d","model":"Grok 4.7 256K Extra High","permissionMode":"default"}
+{"type":"user","message":{"role":"user","content":[{"type":"text","text":"Reply with the single word: alpha"}]},"session_id":"bc35b7fc-795f-4ee1-96f2-ed549a69b12d"}
+{"type":"thinking","subtype":"delta","text":"The user requested a","session_id":"bc35b7fc-795f-4ee1-96f2-ed549a69b12d","timestamp_ms":1790994297441}
+{"type":"thinking","subtype":"delta","text":" single-word reply: ","session_id":"bc35b7fc-795f-4ee1-96f2-ed549a69b12d","timestamp_ms":1790994297445}
+{"type":"thinking","subtype":"delta","text":"\"alpha\".","session_id":"bc35b7fc-795f-4ee1-96f2-ed549a69b12d","timestamp_ms":1790994297445}
+{"type":"thinking","subtype":"completed","session_id":"bc35b7fc-795f-4ee1-96f2-ed549a69b12d","timestamp_ms":1790994297446}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"alpha"}]},"session_id":"bc35b7fc-795f-4ee1-96f2-ed549a69b12d"}
+{"type":"result","subtype":"success","duration_ms":1902,"duration_api_ms":1902,"is_error":false,"result":"alpha","session_id":"bc35b7fc-795f-4ee1-96f2-ed549a69b12d","request_id":"a1abc281-8158-485f-955f-784dea046dd1","usage":{"inputTokens":10528,"outputTokens":28,"cacheReadTokens":5888,"cacheWriteTokens":0}}

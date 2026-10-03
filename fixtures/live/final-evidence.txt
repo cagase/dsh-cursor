@@ -1,0 +1,27 @@
+############ final evidence ############
+### captured: 2026-10-03T02:25:13Z
+
+=== --system-prompt with a non-grok model (claude-opus-4-8-high) ===
+Connection lost, reconnecting to https://agentn.global.api5.cursor.sh (attempt 2)...
+Retry attempt 2...
+Connection lost, reconnecting to https://agentn.global.api5.cursor.sh (attempt 3)...
+Retry attempt 3...
+RetriableError: [invalid_argument] unknown option '--system-prompt'
+exit=0
+
+=== byte inspection: hidden characters in grok display names ===
+grok-4.7-low             display='Grok 4.7  Low'  non-ascii/control bytes: []
+grok-4.7-low-fast        display='Grok 4.7  Low Fast\u200b\u200b'  non-ascii/control bytes: [(18, '0xe2'), (19, '0x80'), (20, '0x8b'), (21, '0xe2'), (22, '0x80'), (23, '0x8b')]
+grok-4.7-medium          display='Grok 4.7  Medium'  non-ascii/control bytes: []
+grok-4.7-medium-fast     display='Grok 4.7  Medium Fast\u200b\u200b'  non-ascii/control bytes: [(21, '0xe2'), (22, '0x80'), (23, '0x8b'), (24, '0xe2'), (25, '0x80'), (26, '0x8b')]
+grok-4.7-high            display='Grok 4.7  High'  non-ascii/control bytes: []
+grok-4.7-high-fast       display='Grok 4.7  High Fast\u200b\u200b'  non-ascii/control bytes: [(19, '0xe2'), (20, '0x80'), (21, '0x8b'), (22, '0xe2'), (23, '0x80'), (24, '0x8b')]
+grok-4.7-xhigh           display='Grok 4.7  Extra High'  non-ascii/control bytes: []
+grok-4.7-xhigh-fast      display='Grok 4.7  Extra High Fast\u200b\u200b'  non-ascii/control bytes: [(25, '0xe2'), (26, '0x80'), (27, '0x8b'), (28, '0xe2'), (29, '0x80'), (30, '0x8b')]
+
+=== catalog summary ===
+total entries: 246
+grok-family entries: 22
+  base cursor-grok-4.5  -> ['cursor-grok-4.5-high', 'cursor-grok-4.5-high-fast', 'cursor-grok-4.5-low', 'cursor-grok-4.5-low-fast', 'cursor-grok-4.5-medium', 'cursor-grok-4.5-medium-fast']
+  base cursor-grok-4.6  -> ['cursor-grok-4.6-high', 'cursor-grok-4.6-high-fast', 'cursor-grok-4.6-low', 'cursor-grok-4.6-low-fast', 'cursor-grok-4.6-medium', 'cursor-grok-4.6-medium-fast', 'cursor-grok-4.6-xhigh', 'cursor-grok-4.6-xhigh-fast']
+  base grok-4.7         -> ['grok-4.7-high', 'grok-4.7-high-fast', 'grok-4.7-low', 'grok-4.7-low-fast', 'grok-4.7-medium', 'grok-4.7-medium-fast', 'grok-4.7-xhigh', 'grok-4.7-xhigh-fast']

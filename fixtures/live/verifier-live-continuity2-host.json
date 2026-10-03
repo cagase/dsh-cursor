@@ -1,0 +1,125 @@
+{
+  "startedAt": "2026-10-03T02:56:23.950Z",
+  "purpose": "controlled live continuity: valid UUIDv4 new-session vs known resume vs unknown resume vs fresh",
+  "probes": [
+    {
+      "label": "new-session-v4-with-fact",
+      "argv": [
+        "--print",
+        "--mode",
+        "ask",
+        "--trust",
+        "--new-session-id",
+        "4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b",
+        "--model",
+        "grok-4.7",
+        "My favorite color is aubergine. Reply with just OK."
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "ms": 5542,
+      "stdout": "OK\n",
+      "stderr": ""
+    },
+    {
+      "label": "resume-known-ask-fact",
+      "argv": [
+        "--print",
+        "--mode",
+        "ask",
+        "--trust",
+        "--model",
+        "grok-4.7",
+        "--resume",
+        "4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b",
+        "What is my favorite color? Reply with just the color, or UNKNOWN."
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "ms": 3763,
+      "stdout": "aubergine\n",
+      "stderr": ""
+    },
+    {
+      "label": "resume-unknown-ask-fact",
+      "argv": [
+        "--print",
+        "--mode",
+        "ask",
+        "--trust",
+        "--model",
+        "grok-4.7",
+        "--resume",
+        "5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d",
+        "What is my favorite color? Reply with just the color, or UNKNOWN."
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "ms": 9772,
+      "stdout": "UNKNOWN\n",
+      "stderr": ""
+    },
+    {
+      "label": "fresh-control-ask-fact",
+      "argv": [
+        "--print",
+        "--mode",
+        "ask",
+        "--trust",
+        "--model",
+        "grok-4.7",
+        "What is my favorite color? Reply with just the color, or UNKNOWN."
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "ms": 10294,
+      "stdout": "UNKNOWN\n",
+      "stderr": ""
+    },
+    {
+      "label": "resume-known-stream-json",
+      "argv": [
+        "--print",
+        "--output-format",
+        "stream-json",
+        "--mode",
+        "ask",
+        "--trust",
+        "--model",
+        "grok-4.7",
+        "--resume",
+        "4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b",
+        "What is my favorite color? Reply with just the color, or UNKNOWN."
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "ms": 3662,
+      "stdout": "{\"type\":\"system\",\"subtype\":\"init\",\"apiKeySource\":\"login\",\"cwd\":\"/Users/theluiscarbonell/Projects/cagase/dsh-cursor\",\"session_id\":\"4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b\",\"model\":\"Grok 4.7 256K Extra High Fast\",\"permissionMode\":\"default\"}\n{\"type\":\"user\",\"message\":{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"What is my favorite color? Reply with just the color, or UNKNOWN.\"}]},\"session_id\":\"4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b\"}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\"The user is asking again\",\"session_id\":\"4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b\",\"timestamp_ms\":1790996216752}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\" what their favorite\",\"session_id\":\"4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b\",\"timestamp_ms\":1790996216759}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\" color is.\",\"session_id\":\"4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b\",\"timestamp_ms\":1790996216759}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\"\\n\\nTheir favorite color\",\"session_id\":\"4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b\",\"timestamp_ms\":1790996216759}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\" is aubergine.\",\"session_id\":\"4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b\",\"timestamp_ms\":1790996216760}\n{\"type\":\"thinking\",\"subtype\":\"completed\",\"session_id\":\"4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b\",\"timestamp_ms\":1790996216760}\n{\"type\":\"assistant\",\"message\":{\"role\":\"assistant\",\"content\":[{\"type\":\"text\",\"text\":\"aubergine\"}]},\"session_id\":\"4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b\"}\n{\"type\":\"result\",\"subtype\":\"success\",\"duration_ms\":1877,\"duration_api_ms\":1877,\"is_error\":false,\"result\":\"aubergine\",\"session_id\":\"4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b\",\"request_id\":\"f769d7ee-813a-48ca-bdab-a570a5de82c2\",\"usage\":{\"inputTokens\":274,\"outputTokens\":34,\"cacheReadTokens\":17152,\"cacheWriteTokens\":0}}\n",
+      "stderr": ""
+    },
+    {
+      "label": "resume-unknown-stream-json",
+      "argv": [
+        "--print",
+        "--output-format",
+        "stream-json",
+        "--mode",
+        "ask",
+        "--trust",
+        "--model",
+        "grok-4.7",
+        "--resume",
+        "5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d",
+        "What is my favorite color? Reply with just the color, or UNKNOWN."
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "ms": 4955,
+      "stdout": "{\"type\":\"system\",\"subtype\":\"init\",\"apiKeySource\":\"login\",\"cwd\":\"/Users/theluiscarbonell/Projects/cagase/dsh-cursor\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"model\":\"Grok 4.7 256K Extra High Fast\",\"permissionMode\":\"default\"}\n{\"type\":\"user\",\"message\":{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"What is my favorite color? Reply with just the color, or UNKNOWN.\"}]},\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\"}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\"The user is asking again\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221755}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\" for their favorite \",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221758}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\"color. They want just\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221758}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\" the color or UNKNOWN.\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221758}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\"\\n\\nNo favorite color \",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221758}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\"was stated in this conversation.\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221759}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\" The fixture file references\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221759}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\" a test color, but that\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221759}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\" does not reflect the\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221759}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\" user's actual preference.\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221759}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\" The correct response\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221759}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\" is UNKNOWN.\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221759}\n{\"type\":\"thinking\",\"subtype\":\"completed\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221759}\n{\"type\":\"assistant\",\"message\":{\"role\":\"assistant\",\"content\":[{\"type\":\"text\",\"text\":\"UNKNOWN\"}]},\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\"}\n{\"type\":\"result\",\"subtype\":\"success\",\"duration_ms\":3075,\"duration_api_ms\":3075,\"is_error\":false,\"result\":\"UNKNOWN\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"request_id\":\"bd495eac-4669-4eb2-bfe7-77d8cfa1906d\",\"usage\":{\"inputTokens\":484,\"outputTokens\":77,\"cacheReadTokens\":18176,\"cacheWriteTokens\":0}}\n",
+      "stderr": ""
+    }
+  ],
+  "errors": [],
+  "bin": "/Users/theluiscarbonell/.local/bin/agent",
+  "finishedAt": "2026-10-03T02:57:01.941Z"
+}

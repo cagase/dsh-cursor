@@ -1,0 +1,26 @@
+############ conversation-history decisive set (repo workspace) ############
+### captured: 2026-10-03T02:21:34Z
+
+=== E1) +hist-key   'Where is the spare key hidden?' ===
+UNKNOWN
+exit=0
+
+=== E2) no history  'Where is the spare key hidden?' ===
+UNKNOWN
+exit=0
+
+=== E3) +hist-dog    'What is my dog's name?' ===
+UNKNOWN
+exit=0
+
+=== E4) no history   'What is my dog's name?' ===
+UNKNOWN
+exit=0
+
+=== E5) repeat of C1: +hist-color 'What is my favorite color?' ===
+UNKNOWN
+exit=0
+
+=== E6) repeat control: no history, favorite color ===
+UNKNOWN
+exit=0

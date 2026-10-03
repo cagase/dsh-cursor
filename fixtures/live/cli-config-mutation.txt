@@ -1,0 +1,29 @@
+### side effect: every `agent --model <m>` run persists the selection into ~/.cursor/cli-config.json
+### model block BEFORE the restore (written by this research session's probes):
+{
+  "modelId": "claude-opus-4-8",
+  "displayModelId": "claude-opus-4-8",
+  "displayName": "Claude Opus 4.8 300K High No Thinking",
+  "displayNameShort": "Claude Opus 4.8 300K High No Thinking",
+  "aliases": [],
+  "maxMode": false
+}
+### model block restored to the pre-probe value captured at the start of this session:
+{
+  "modelId": "grok-4.7",
+  "displayModelId": "grok-4.7",
+  "displayName": "Grok 4.7 256K Extra High",
+  "displayNameShort": "Grok 4.7 256K Extra High",
+  "aliases": [],
+  "maxMode": false
+}
+### model block AFTER the restore:
+{
+  "modelId": "grok-4.7",
+  "displayModelId": "grok-4.7",
+  "displayName": "Grok 4.7 256K Extra High",
+  "displayNameShort": "Grok 4.7 256K Extra High",
+  "aliases": [],
+  "maxMode": false
+}
+### other keys preserved: True

@@ -1,0 +1,108 @@
+t3/t8 live CLI evidence (raw captures under fixtures/live/)
+
+### verifier-live-probe-host.json (2026-10-03T02:52:26.476Z .. 2026-10-03T02:53:01.548Z)
+--- status-default-env  exit=0  ms=740
+argv: ["status","--format","json"]
+stdout: "{\n  \"status\": \"authenticated\",\n  \"isAuthenticated\": true,\n  \"hasAccessToken\": true,\n  \"hasRefreshToken\": true,\n  \"userInfo\": {\n    \"email\": \"the.luis.carbonell@gmail.com\",\n    \"userId\": 118287361,\n    \"firstName\": \"Lu\",\n    \"lastName\": \"Carbonell\",\n    \"createdAt\": \"2024-10-30T21:35:24.994Z\"\n  }\n}\n"
+stderr: ""
+--- status-explicit-env  exit=0  ms=460
+argv: ["status","--format","json"]
+stdout: "{\n  \"status\": \"authenticated\",\n  \"isAuthenticated\": true,\n  \"hasAccessToken\": true,\n  \"hasRefreshToken\": true,\n  \"userInfo\": {\n    \"email\": \"the.luis.carbonell@gmail.com\",\n    \"userId\": 118287361,\n    \"firstName\": \"Lu\",\n    \"lastName\": \"Carbonell\",\n    \"createdAt\": \"2024-10-30T21:35:24.994Z\"\n  }\n}\n"
+stderr: ""
+--- models  exit=0  ms=1149
+argv: ["models"]
+stdout: "Available models\n\nauto - Auto (default)\ngpt-5.3-codex-low - Codex 5.3 Low\ngpt-5.3-codex-low-fast - Codex 5.3 Low Fast\ngpt-5.3-codex - Codex 5.3\ngpt-5.3-codex-fast - Codex 5.3 Fast\ngpt-5.3-codex-high - Codex 5.3 High\ngpt-5.3-codex-high-fast - Codex 5.3 High Fast\ngpt-5.3-codex-xhigh - Codex 5.3 Extra High\ngpt-5.3-codex-xhigh-fast - Codex 5.3 Extra High Fast\ngpt-5.2 - GPT-5.2\ncomposer-2.5 - Composer 2.5\nclaude-opus-5-thinking-high - Claude Opus 5 1M Thinking\nclaude-opus-5-thinking-high-fast - Claude Opus 5 1M Thinking Fast\ngpt-5.6-sol-high - GPT-5.6 Sol 1M High\ngpt-5.6-sol-high-fast - GPT-5.6 Sol 1M High Fast\ngpt-5.6-sol-xhigh - GPT-5.6 Sol 1M Extra High\ngpt-5.6-sol-xhigh-fast - GPT-5.6 Sol 1M Extra High Fast\nclaude-fable-5-thinking-high - Claude Fable 5 1M Thinking (NO ZDR)\nclaude-fable-5-thinking-xhigh - Claude Fable 5 1M Extra High Thinking (NO ZDR)\ncursor-grok-4.5-high - Grok 4.5\ncursor-grok-4.5-high-fast - Grok 4.5 Fast\ngemini-3.7-flash-high - Gemini 3.7 Flash\nclaude-sonnet-5-thinking-high - Claude Sonnet 5 1M Thinking\nclaude-sonnet-5-thinking-xhigh - Claude Sonnet 5 1M Extra High Thinking\ngpt-5.6-luna-high - GPT-5.6 Luna 1M High\ngrok-4.7-low - Grok 4.7  Low\ngrok-4.7-low-fast - Grok 4.7  Low Fast​​\ngrok-4.7-medium - Grok 4.7  Medium\ngrok-4.7-medium-fast - Grok 4.7  Medium Fast​​\ngrok-4.7-high - Grok 4.7  High\ngrok-4.7-high-fast - Grok 4.7  High Fast​​\ngrok-4.7-xhigh - Grok 4.7  Extra High\ngrok-4.7-xhigh-fast - Grok 4.7  Extra High Fast​​\ncursor-grok-4.6-low - Grok 4.6 Low\ncursor-grok-4.6-low-fast - Grok 4.6 Low Fast\ncursor-grok-4.6-medium - Grok 4.6 Medium\ncursor-grok-4.6-medium-fast - Grok 4.6 Medium Fast\ncursor-grok-4.6-high - Grok 4.6\ncursor-grok-4.6-high-fast - Grok 4.6 Fast\ncursor-grok-4.6-xhigh - Grok 4.6 Extra High\ncursor-grok-4.6-xhigh-fast - Grok 4.6 Extra High Fast\ncomposer-2.5-fast - Composer 2.5 Fast\nclaude-opus-5-5-low - Claude Opus 5.5 1M Low\nclaude-opus-5-5-low-fast - Claude Opus 5.5 1M Low Fast\nclaude-opus-5-5-medium - Claude Opus 5.5 1M\nclaude-opus-5-5-medium-fast - Claude Opus 5.5 1M Fast\nclaude-opus-5-5-high - Claude Opus 5.5 1M High\nclaude-opus-5-5-high-fast - Claude Opus 5.5 1M High Fast\nclaude-opus-5-5-xhigh - Claude Opus 5.5 1M Extra High\nclaude-opus-5-5-xhigh-fast - Claude Opus 5.5 1M Extra High Fast\nclaude-opus-5-5-max - Claude Opus 5.5 1M Max\nclaude-opus-5-5-max-fast - Claude Opus 5.5 1M Max Fast\nclaude-opus-5-low - Claude Opus 5 1M Low\nclaude-opus-5-low-fast - Claude Opus 5 1M Low Fast\nclaude-opus-5-medium - Claude Opus 5 1M Medium\nclaude-opus-5-medium-fast - Claude Opus 5 1M Medium Fast\nclaude-opus-5-high - Claude Opus 5 1M\nclaude-opus-5-high-fast - Claude Opus 5 1M Fast\nclaude-opus-5-thinking-low - Claude Opus 5 1M Low Thinking\nclaude-opus-5-thinking-low-fast - Claude Opus 5 1M Low Thinking Fast\nclaude-opus-5-thinking-medium - Claude Opus 5 1M Medium Thinking\nclaude-opus-5-thinking-medium-fast - Claude Opus 5 1M Medium Thinking Fast\nclaude-opus-5-thinking-xhigh - Claude Opus 5 1M Extra High Thinking\nclaude-opus-5-thinking-xhigh-fast - Claude Opus 5 1M Extra High Thinking Fast\nclaude-opus-5-thinking-max - Claude Opus 5 1M Max Thinking\nclaude-opus-5-thinking-max-fast - Claude Opus 5 1M Max Thinking Fast\nclaude-opus-4-8-low - Claude Opus 4.8 1M Low\nclaude-opus-4-8-low-fast - Claude Opus 4.8 1M Low Fast\nclaude-opus-4-8-medium - Claude Opus 4.8 1M Medium\nclaude-opus-4-8-medium-fast - Claude Opus 4.8 1M Medium Fast\nclaude-opus-4-8-high - Claude Opus 4.8 1M\nclaude-opus-4-8-high-fast - Claude Opus 4.8 1M Fast\nclaude-opus-4-8-xhigh - Claude Opus 4.8 1M Extra High\nclaude-opus-4-8-xhigh-fast - Claude Opus 4.8 1M Extra High Fast\nclaude-opus-4-8-max - Claude Opus 4.8 1M Max\nclaude-opus-4-8-max-fast - Claude Opus 4.8 1M Max Fast\nclaude-opus-4-8-thinking-low - Claude Opus 4.8 1M Low Thinking\nclaude-opus-4-8-thinking-low-fast - Claude Opus 4.8 1M Low Thinking Fast\nclaude-opus-4-8-thinking-medium - Claude Opus 4.8 1M Medium Thinking\nclaude-opus-4-8-thinking-medium-fast - Claude Opus 4.8 1M Medium Thinking Fast\ncl"
+stderr: ""
+--- print-xhigh  exit=0  ms=14865
+argv: ["--print","--mode","ask","--trust","--model","grok-4.7-xhigh","Reply with exactly: OK"]
+stdout: "OK\n"
+stderr: ""
+--- print-xhigh-fast  exit=0  ms=9167
+argv: ["--print","--mode","ask","--trust","--model","grok-4.7-xhigh-fast","Reply with exactly: OK"]
+stdout: "OK\n"
+stderr: ""
+--- resume-unknown-uuid  exit=0  ms=3677
+argv: ["--print","--mode","ask","--trust","--model","grok-4.7","--resume","00000000-0000-5000-8000-000000000000","Reply with exactly: OK"]
+stdout: "OK\n"
+stderr: ""
+--- resume-unknown-uuid-json  exit=0  ms=3730
+argv: ["--print","--output-format","stream-json","--mode","ask","--trust","--model","grok-4.7","--resume","00000000-0000-5000-8000-000000000000","Reply with exactly: OK"]
+stdout: "{\"type\":\"system\",\"subtype\":\"init\",\"apiKeySource\":\"login\",\"cwd\":\"/Users/theluiscarbonell/Projects/cagase/dsh-cursor\",\"session_id\":\"00000000-0000-5000-8000-000000000000\",\"model\":\"Grok 4.7 256K Extra High Fast\",\"permissionMode\":\"default\"}\n{\"type\":\"user\",\"message\":{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"Reply with exactly: OK\"}]},\"session_id\":\"00000000-0000-5000-8000-000000000000\"}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\"Preparing to reply with\",\"session_id\":\"00000000-0000-5000-8000-000000000000\",\"timestamp_ms\":1790995979880}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\" exactly \\\"OK\\\".\",\"session_id\":\"00000000-0000-5000-8000-000000000000\",\"timestamp_ms\":1790995979882}\n{\"type\":\"thinking\",\"subtype\":\"completed\",\"session_id\":\"00000000-0000-5000-8000-000000000000\",\"timestamp_ms\":1790995979883}\n{\"type\":\"assistant\",\"message\":{\"role\":\"assistant\",\"content\":[{\"type\":\"text\",\"text\":\"OK\"}]},\"session_id\":\"00000000-0000-5000-8000-000000000000\"}\n{\"type\":\"result\",\"subtype\":\"success\",\"duration_ms\":1977,\"duration_api_ms\":1977,\"is_error\":false,\"result\":\"OK\",\"session_id\":\"00000000-0000-5000-8000-000000000000\",\"request_id\":\"892b1309-e6e0-4a01-9457-e07b096e0edb\",\"usage\":{\"inputTokens\":11760,\"outputTokens\":25,\"cacheReadTokens\":5248,\"cacheWriteTokens\":0}}\n"
+stderr: ""
+--- print-bracket-baseline  exit=1  ms=1281
+argv: ["--print","--mode","ask","--trust","--model","grok-4.7[effort=max]","Reply with exactly: OK"]
+stdout: ""
+stderr: "Cannot use this model: grok-4.7[effort=max]. Available models: auto, gpt-5.3-codex-low, gpt-5.3-codex-low-fast, gpt-5.3-codex, gpt-5.3-codex-fast, gpt-5.3-codex-high, gpt-5.3-codex-high-fast, gpt-5.3-codex-xhigh, gpt-5.3-codex-xhigh-fast, gpt-5.2, composer-2.5, claude-opus-5-thinking-high, claude-opus-5-thinking-high-fast, gpt-5.6-sol-high, gpt-5.6-sol-high-fast, gpt-5.6-sol-xhigh, gpt-5.6-sol-xhigh-fast, claude-fable-5-thinking-high, claude-fable-5-thinking-xhigh, cursor-grok-4.5-high, cursor-grok-4.5-high-fast, gemini-3.7-flash-high, claude-sonnet-5-thinking-high, claude-sonnet-5-thinking-xhigh, gpt-5.6-luna-high, grok-4.7-low, grok-4.7-low-fast, grok-4.7-medium, grok-4.7-medium-fast, grok-4.7-high, grok-4.7-high-fast, grok-4.7-xhigh, grok-4.7-xhigh-fast, cursor-grok-4.6-low, cursor-grok-4.6-low-fast, cursor-grok-4.6-medium, cursor-grok-4.6-medium-fast, cursor-grok-4.6-high, cursor-grok-4.6-high-fast, cursor-grok-4.6-xhigh, cursor-grok-4.6-xhigh-fast, composer-2.5-fast, claude-opus-5-5-low, claude-opus-5-5-low-fast, claude-opus-5-5-medium, claude-opus-5-5-medium-fast, claude-opus-5-5-high, claude-opus-5-5-high-fast, claude-opus-5-5-xhigh, claude-opus-5-5-xhigh-fast, claude-opus-5-5-max, claude-opus-5-5-max-fast, claude-opus-5-low, claude-opus-5-low-fast, claude-opus-5-medium, claude-opus-5-medium-fast, claude-opus-5-high, claude-opus-5-high-fast, claude-opus-5-thinking-low, claude-opus-5-thinking-low-fast, claude-opus-5-thinking-medium, claude-opus-5-thinking-medium-fast, claude-opus-5-thinking-xhigh, claude-opus-5-thinking-xhigh-fast, claude-opus-5-thinking-max, claude-opus-5-thinking-max-fast, claude-opus-4-8-low, claude-opus-4-8-low-fast, claude-opus-4-8-medium, claude-opus-4-8-medium-fast, claude-opus-4-8-high, claude-opus-4-8-high-fast, claude-opus-4-8-xhigh, claude-opus-4-8-xhigh-fast, claude-opus-4-8-max, claude-opus-4-8-max-fast, claude-opus-4-8-thinking-low, claude-opus-4-8-thinking-low-fast, claude-opus-4-8-thinking-medium, claude-opus-4-8-thinking-mediu"
+
+### verifier-live-sessionid-host.json (2026-10-03T02:54:52.852Z .. 2026-10-03T02:55:12.723Z)
+--- adapter-minted-v5-new-session  exit=1  ms=356
+argv: ["--print","--mode","ask","--trust","--model","grok-4.7","--new-session-id","39d32074-6362-53fa-8eb7-84ae8c182d38","Reply with exactly: OK"]
+stdout: ""
+stderr: "Error: Invalid --new-session-id \"39d32074-6362-53fa-8eb7-84ae8c182d38\": expected a UUIDv4.\n"
+--- v4-control-new-session  exit=0  ms=11063
+argv: ["--print","--mode","ask","--trust","--model","grok-4.7","--new-session-id","39d32074-6362-43fa-8eb7-84ae8c182d38","Reply with exactly: OK"]
+stdout: "OK\n"
+stderr: ""
+--- adapter-minted-v5-resume  exit=0  ms=4404
+argv: ["--print","--mode","ask","--trust","--model","grok-4.7","--resume","39d32074-6362-53fa-8eb7-84ae8c182d38","Reply with exactly: OK"]
+stdout: "OK\n"
+stderr: ""
+--- v4-control-resume  exit=0  ms=3739
+argv: ["--print","--mode","ask","--trust","--model","grok-4.7","--resume","39d32074-6362-43fa-8eb7-84ae8c182d38","Reply with exactly: OK"]
+stdout: "OK\n"
+stderr: ""
+--- v5-new-session-json  exit=1  ms=302
+argv: ["--print","--output-format","stream-json","--mode","ask","--trust","--model","grok-4.7","--new-session-id","76ede8fd-e870-5b78-8385-209960ce59b5","Reply with exactly: OK"]
+stdout: ""
+stderr: "Error: Invalid --new-session-id \"76ede8fd-e870-5b78-8385-209960ce59b5\": expected a UUIDv4.\n"
+
+### verifier-live-continuity-host.json (2026-10-03T02:53:38.115Z .. 2026-10-03T02:54:19.242Z)
+--- A-new-session-with-fact  exit=1  ms=334
+argv: ["--print","--mode","ask","--trust","--new-session-id","11111111-1111-5111-8111-111111111111","--model","grok-4.7","My favorite color is aubergine. Reply with just OK."]
+stdout: ""
+stderr: "Error: Invalid --new-session-id \"11111111-1111-5111-8111-111111111111\": expected a UUIDv4.\n"
+--- B-resume-known-ask-fact  exit=0  ms=13791
+argv: ["--print","--mode","ask","--trust","--model","grok-4.7","--resume","11111111-1111-5111-8111-111111111111","What is my favorite color? Reply with just the color, or UNKNOWN."]
+stdout: "UNKNOWN\n"
+stderr: ""
+--- C-resume-unknown-ask-fact  exit=0  ms=10911
+argv: ["--print","--mode","ask","--trust","--model","grok-4.7","--resume","22222222-2222-5222-8222-222222222222","What is my favorite color? Reply with just the color, or UNKNOWN."]
+stdout: "UNKNOWN\n"
+stderr: ""
+--- D-fresh-control-ask-fact  exit=0  ms=10955
+argv: ["--print","--mode","ask","--trust","--model","grok-4.7","What is my favorite color? Reply with just the color, or UNKNOWN."]
+stdout: "UNKNOWN\n"
+stderr: ""
+--- E-resume-known-second-question  exit=0  ms=5135
+argv: ["--print","--mode","ask","--trust","--model","grok-4.7","--resume","11111111-1111-5111-8111-111111111111","Name one fruit of that color. Reply with just the fruit, or UNKNOWN."]
+stdout: "UNKNOWN\n"
+stderr: ""
+
+### verifier-live-continuity2-host.json (2026-10-03T02:56:23.950Z .. 2026-10-03T02:57:01.941Z)
+--- new-session-v4-with-fact  exit=0  ms=5542
+argv: ["--print","--mode","ask","--trust","--new-session-id","4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b","--model","grok-4.7","My favorite color is aubergine. Reply with just OK."]
+stdout: "OK\n"
+stderr: ""
+--- resume-known-ask-fact  exit=0  ms=3763
+argv: ["--print","--mode","ask","--trust","--model","grok-4.7","--resume","4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b","What is my favorite color? Reply with just the color, or UNKNOWN."]
+stdout: "aubergine\n"
+stderr: ""
+--- resume-unknown-ask-fact  exit=0  ms=9772
+argv: ["--print","--mode","ask","--trust","--model","grok-4.7","--resume","5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d","What is my favorite color? Reply with just the color, or UNKNOWN."]
+stdout: "UNKNOWN\n"
+stderr: ""
+--- fresh-control-ask-fact  exit=0  ms=10294
+argv: ["--print","--mode","ask","--trust","--model","grok-4.7","What is my favorite color? Reply with just the color, or UNKNOWN."]
+stdout: "UNKNOWN\n"
+stderr: ""
+--- resume-known-stream-json  exit=0  ms=3662
+argv: ["--print","--output-format","stream-json","--mode","ask","--trust","--model","grok-4.7","--resume","4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b","What is my favorite color? Reply with just the color, or UNKNOWN."]
+stdout: "{\"type\":\"system\",\"subtype\":\"init\",\"apiKeySource\":\"login\",\"cwd\":\"/Users/theluiscarbonell/Projects/cagase/dsh-cursor\",\"session_id\":\"4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b\",\"model\":\"Grok 4.7 256K Extra High Fast\",\"permissionMode\":\"default\"}\n{\"type\":\"user\",\"message\":{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"What is my favorite color? Reply with just the color, or UNKNOWN.\"}]},\"session_id\":\"4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b\"}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\"The user is asking again\",\"session_id\":\"4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b\",\"timestamp_ms\":1790996216752}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\" what their favorite\",\"session_id\":\"4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b\",\"timestamp_ms\":1790996216759}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\" color is.\",\"session_id\":\"4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b\",\"timestamp_ms\":1790996216759}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\"\\n\\nTheir favorite color\",\"session_id\":\"4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b\",\"timestamp_ms\":1790996216759}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\" is aubergine.\",\"session_id\":\"4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b\",\"timestamp_ms\":1790996216760}\n{\"type\":\"thinking\",\"subtype\":\"completed\",\"session_id\":\"4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b\",\"timestamp_ms\":1790996216760}\n{\"type\":\"assistant\",\"message\":{\"role\":\"assistant\",\"content\":[{\"type\":\"text\",\"text\":\"aubergine\"}]},\"session_id\":\"4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b\"}\n{\"type\":\"result\",\"subtype\":\"success\",\"duration_ms\":1877,\"duration_api_ms\":1877,\"is_error\":false,\"result\":\"aubergine\",\"session_id\":\"4f8f6a1e-4b2c-4d3e-8a1b-2c3d4e5f6a7b\",\"request_id\":\"f769d7ee-813a-48ca-bdab-a570a5de82c2\",\"usage\":{\"inputTokens\":274,\"outputTokens\":34,\"cacheReadTokens\":17152,\"cacheWriteTokens\":0}}\n"
+stderr: ""
+--- resume-unknown-stream-json  exit=0  ms=4955
+argv: ["--print","--output-format","stream-json","--mode","ask","--trust","--model","grok-4.7","--resume","5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d","What is my favorite color? Reply with just the color, or UNKNOWN."]
+stdout: "{\"type\":\"system\",\"subtype\":\"init\",\"apiKeySource\":\"login\",\"cwd\":\"/Users/theluiscarbonell/Projects/cagase/dsh-cursor\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"model\":\"Grok 4.7 256K Extra High Fast\",\"permissionMode\":\"default\"}\n{\"type\":\"user\",\"message\":{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"What is my favorite color? Reply with just the color, or UNKNOWN.\"}]},\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\"}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\"The user is asking again\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221755}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\" for their favorite \",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221758}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\"color. They want just\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221758}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\" the color or UNKNOWN.\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221758}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\"\\n\\nNo favorite color \",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221758}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\"was stated in this conversation.\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221759}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\" The fixture file references\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221759}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\" a test color, but that\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221759}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\" does not reflect the\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221759}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\" user's actual preference.\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221759}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\" The correct response\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221759}\n{\"type\":\"thinking\",\"subtype\":\"delta\",\"text\":\" is UNKNOWN.\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221759}\n{\"type\":\"thinking\",\"subtype\":\"completed\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"timestamp_ms\":1790996221759}\n{\"type\":\"assistant\",\"message\":{\"role\":\"assistant\",\"content\":[{\"type\":\"text\",\"text\":\"UNKNOWN\"}]},\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\"}\n{\"type\":\"result\",\"subtype\":\"success\",\"duration_ms\":3075,\"duration_api_ms\":3075,\"is_error\":false,\"result\":\"UNKNOWN\",\"session_id\":\"5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d\",\"request_id\":\"bd495eac-4669-4eb2-bfe7-77d8cfa1906d\",\"usage\":{\"inputTokens\":484,\"outputTokens\":77,\"cacheReadTokens\":18176,\"cacheWriteTokens\":0}}\n"
+stderr: ""
+
+### verifier-live-round2-host.json (? .. ?)
+
