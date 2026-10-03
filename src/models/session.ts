@@ -44,6 +44,8 @@ export interface CursorGenerateOptions {
   system?: string
   tools?: readonly { name: string }[]
   signal?: AbortSignal
+  /** Workspace directory for the CLI chat, when the caller has one. */
+  cwd?: string
 }
 
 export interface ShimTurn {
@@ -66,6 +68,11 @@ export interface AgentTurnPlan {
   readonly session: { readonly mode: 'new' | 'resume' | 'none'; readonly id?: string }
   /** The prompt carries the DSH system prompt and prior turns. */
   readonly bootstrap: boolean
+  /**
+   * Prompt to send when `--new-session-id` is already a CLI chat. Steady-state
+   * text only, so a restart does not dump the bootstrap into that chat again.
+   */
+  readonly resumePositional?: string
   /** Turn count delivered once {@link AgentTurnPlan.commit} runs. */
   readonly deliveredTurns: number
   /** Record the delivery; call only after the CLI turn completed. */
@@ -257,6 +264,7 @@ export class CursorSessionRegistry {
   ): AgentTurnPlan {
     return {
       positional: renderAgentContext(systemText, turns),
+      resumePositional: renderResumePayload(turns.length > 0 ? [turns[turns.length - 1]!] : [], turns),
       session: { mode: 'new', id },
       bootstrap: true,
       deliveredTurns: turns.length,
