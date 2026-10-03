@@ -36,6 +36,7 @@ interface SettingsSource {
 
 export class CursorSettingsLoader {
   private readonly cache = new Map<string, { stamp: string; loaded: LoadedCursorSettings }>()
+  private notedUnsupported = false
 
   constructor(
     private readonly logger: PluginLogger,
@@ -87,10 +88,27 @@ export class CursorSettingsLoader {
     const cacheKey = cwd ?? '<no-cwd>'
     const key = stamps.join('|')
     const cached = this.cache.get(cacheKey)
-    if (cached && cached.stamp === key) return cached.loaded
+    if (cached && cached.stamp === key) {
+      this.noteUnsupported(cached.loaded)
+      return cached.loaded
+    }
     const loaded = await this.loadFresh(sources)
     this.cache.set(cacheKey, { stamp: key, loaded })
+    this.noteUnsupported(loaded)
     return loaded
+  }
+
+  private noteUnsupported(loaded: LoadedCursorSettings): void {
+    if (this.notedUnsupported) return
+    const notes: string[] = []
+    if (loaded.approvalMode) notes.push(`approvalMode=${JSON.stringify(loaded.approvalMode)}`)
+    if (loaded.mcpAllowlist.length > 0) notes.push('mcpAllowlist')
+    if (loaded.terminalAllowlist.length > 0) notes.push('terminalAllowlist')
+    if (notes.length === 0) return
+    this.notedUnsupported = true
+    this.logger.warn?.(
+      `cursor: ${notes.join(', ')} is not enforced; DSH owns approval and sandbox`,
+    )
   }
 
   private async loadFresh(sources: SettingsSource[]): Promise<LoadedCursorSettings> {
@@ -127,8 +145,8 @@ export class CursorSettingsLoader {
         }
         byEvent.set(event, merged)
       }
-      if (layer.permissionAllow !== undefined) permissionAllow = layer.permissionAllow
-      if (layer.permissionDeny !== undefined) permissionDeny = layer.permissionDeny
+      if (layer.permissionAllow !== undefined) permissionAllow = [...(permissionAllow ?? []), ...layer.permissionAllow]
+      if (layer.permissionDeny !== undefined) permissionDeny = [...(permissionDeny ?? []), ...layer.permissionDeny]
       if (layer.approvalMode !== undefined) approvalMode = layer.approvalMode
       if (layer.mcpAllowlist !== undefined) mcpAllowlist = layer.mcpAllowlist
       if (layer.terminalAllowlist !== undefined) terminalAllowlist = layer.terminalAllowlist

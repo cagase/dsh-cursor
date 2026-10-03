@@ -89,7 +89,7 @@ async function walkRules(
 }
 
 export async function loadCursorrules(cwd: string): Promise<string | undefined> {
-  const file = join(findRepoRoot(cwd), '.cursorrules')
+  const file = join(cwd, '.cursorrules')
   if (!(await fileExists(file))) return undefined
   const text = await readText(file)
   return text.trim() === '' ? undefined : text.length > MAX_READ_CHARS ? text.slice(0, MAX_READ_CHARS) : text
