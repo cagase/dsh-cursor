@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { basename, dirname, join, normalize } from 'node:path'
-import { dirExists, fileExists, listDir, readText } from '../fs.js'
+import { dirExists, fileExists, listDir, readText, treeStamp } from '../fs.js'
 import { FrontmatterError, parseRuleFile, type ParsedRuleFile } from '../parse.js'
 import { findRepoRoot, projectRulesDir, relativeLabel } from '../roots.js'
 import type { AgentLike, PluginLogger, SkillCandidate } from '../types.js'
@@ -32,9 +32,16 @@ export function classifyRule(rule: ParsedRuleFile, file: string): RuleKind {
   return 'manual'
 }
 
+const rulesCache = new Map<string, { stamp: string; rules: LoadedRule[] }>()
+
 export async function collectRules(cwd: string, logger: PluginLogger, signal?: AbortSignal): Promise<LoadedRule[]> {
   const rulesDir = projectRulesDir(cwd)
-  return walkRules(rulesDir, cwd, logger, 0, signal)
+  const stamped = signal ? undefined : await treeStamp(rulesDir, signal)
+  const hit = stamped === undefined ? undefined : rulesCache.get(rulesDir)
+  if (hit && hit.stamp === stamped) return hit.rules
+  const rules = await walkRules(rulesDir, cwd, logger, 0, signal)
+  if (stamped !== undefined) rulesCache.set(rulesDir, { stamp: stamped, rules })
+  return rules
 }
 
 async function walkRules(

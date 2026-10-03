@@ -18,12 +18,14 @@ export declare class CursorSkillProvider implements SkillProvider {
     private readonly options;
     private readonly extra?;
     readonly name = "cursor";
+    private catalogCache;
     constructor(logger: PluginLogger, options: SkillProviderOptions, extra?: ((cwd: string | undefined, signal?: AbortSignal) => Promise<SkillCandidate[]>) | undefined);
     private resolveRoots;
     list(options: SkillLookupOptions): Promise<{
         candidates: SkillCandidate[];
         complete: boolean;
     }>;
+    private listUncached;
     private listRoot;
     private listBundleDirs;
     private skillSummary;

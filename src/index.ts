@@ -113,16 +113,15 @@ export function apply(ctx: Context | import('./types.js').HostContext, config: D
     const agent = exec.agent
     const filePath = toolFilePath(exec.arguments)
     if (!agent || !filePath) return
-    void attachGlobRules(agent, filePath, logger).catch((error) => {
-      logger.warn?.(`cursor: glob rule attach failed: ${errorMessage(error)}`)
-    })
     void (async () => {
-      if (!provider) return
-      const listed = await provider.list({ cwd: agent.session.header.cwd })
-      const candidates = Array.isArray(listed) ? listed : listed.candidates
-      await attachMatchingSkills(agent, filePath, candidates, logger)
+      if (provider) {
+        const listed = await provider.list({ cwd: agent.session.header.cwd })
+        const candidates = Array.isArray(listed) ? listed : listed.candidates
+        await attachMatchingSkills(agent, filePath, candidates, logger)
+      }
+      await attachGlobRules(agent, filePath, logger)
     })().catch((error) => {
-      logger.warn?.(`cursor: skill attach failed: ${errorMessage(error)}`)
+      logger.warn?.(`cursor: file attach failed: ${errorMessage(error)}`)
     })
   })
 
