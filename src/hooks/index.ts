@@ -108,10 +108,8 @@ export function registerHooks(
             capString(outcome.stderr, config.maxHookOutputChars),
             'blocked by a Cursor hook',
           )
-          return {
-            kind: 'enter',
-            messages: [pluginUserMessage(`dsh-cursor:hooks/beforeSubmitPrompt`, reason, 'notice')],
-          }
+          logger.warn?.(`cursor: beforeSubmitPrompt blocked the step: ${reason}`)
+          return { kind: 'reject' }
         }
       }
       return next()
