@@ -1,4 +1,5 @@
-import { dirname } from 'node:path'
+import { createHash } from 'node:crypto'
+import { dirname, isAbsolute, relative, resolve } from 'node:path'
 import { readText } from '../fs.js'
 import { parseSkillFile } from '../parse.js'
 import type { AgentLike, PluginLogger, SkillCandidate } from '../types.js'
@@ -19,12 +20,25 @@ function remember(agent: AgentLike, key: string): boolean {
   return true
 }
 
-export function skillMatchesPath(candidate: SkillCandidate, filePath: string): boolean {
+function skillGlobMatches(pattern: string, filePath: string, cwd?: string): boolean {
+  let glob = pattern.replace(/\\/g, '/').trim()
+  while (glob.startsWith('./')) glob = glob.slice(2)
+  if (glob.startsWith('/')) glob = glob.slice(1)
+  let target = filePath.replace(/\\/g, '/')
+  if (cwd !== undefined && cwd !== '') {
+    const rel = relative(resolve(cwd), resolve(target)).replace(/\\/g, '/')
+    if (rel === '' || rel === '..' || rel.startsWith('../') || isAbsolute(rel)) return false
+    target = rel
+  }
+  return matchGlob(glob, target)
+}
+
+export function skillMatchesPath(candidate: SkillCandidate, filePath: string, cwd?: string): boolean {
   const metadata = candidate.metadata
   const paths = Array.isArray(metadata?.paths) ? metadata.paths.filter((entry): entry is string => typeof entry === 'string') : []
   const globs = Array.isArray(metadata?.globs) ? metadata.globs.filter((entry): entry is string => typeof entry === 'string') : []
   if (paths.length === 0 && globs.length === 0) return false
-  return [...paths, ...globs].some((pattern) => matchGlob(pattern, filePath))
+  return [...paths, ...globs].some((pattern) => skillGlobMatches(pattern, filePath, cwd))
 }
 
 export async function attachMatchingSkills(
@@ -33,16 +47,21 @@ export async function attachMatchingSkills(
   candidates: readonly SkillCandidate[],
   logger: PluginLogger,
 ): Promise<void> {
+  const cwd = agent.session.header.cwd
   for (const candidate of candidates) {
-    if (!skillMatchesPath(candidate, filePath)) continue
+    if (!skillMatchesPath(candidate, filePath, cwd)) continue
     const locator = candidate.locator as { file?: string; kind?: string } | undefined
     const file = locator?.file ?? candidate.path
     if (!file || locator?.kind === 'rule' || locator?.kind === 'agent') continue
-    if (!remember(agent, `skill:${file}`)) continue
     try {
       const read = await readText(file)
-      if (read.truncated) throw new Error(`skill file exceeds the read cap: ${file}`)
+      if (read.truncated) {
+        logger.warn?.(`cursor: cannot read skill ${file}: file exceeds the read cap`)
+        continue
+      }
       const parsed = parseSkillFile(read.text, candidate.name)
+      const hash = createHash('sha256').update(parsed.body).digest('hex').slice(0, 16)
+      if (!remember(agent, `skill:${file}:${hash}`)) continue
       const name = catalogName(parsed.frontmatter.name, candidate.name)
       agent.inject(
         reminder(

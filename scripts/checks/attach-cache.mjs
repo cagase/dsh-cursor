@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url'
 
 const fs = await import(pathToFileURL(join(process.cwd(), 'lib/fs.js')).href)
 const providerMod = await import(pathToFileURL(join(process.cwd(), 'lib/skills/provider.js')).href)
+const attachMod = await import(pathToFileURL(join(process.cwd(), 'lib/skills/attach.js')).href)
 const rules = await import(pathToFileURL(join(process.cwd(), 'lib/rules/index.js')).href)
 
 function assert(cond, message) {
@@ -84,6 +85,41 @@ try {
   const hugeListed = await hugeProvider.list({ cwd: root })
   assert(!hugeListed.candidates.some((candidate) => candidate.name === 'huge'), 'truncated skill was listed')
   assert(hugeListed.complete === false, 'truncated skill walk was treated as complete')
+
+  const skillFile = join(root, 'attach-skill', 'SKILL.md')
+  await mkdir(join(root, 'attach-skill'), { recursive: true })
+  const candidate = {
+    name: 'attach-skill',
+    description: 'd',
+    invocation: { modelInvocable: true, userInvocable: true },
+    source: 'project-cursor',
+    provider: 'cursor',
+    rank: 1,
+    path: skillFile,
+    locator: { kind: 'bundle', file: skillFile },
+    metadata: { globs: ['src/**'] },
+  }
+  const messages = []
+  const warningsAttach = []
+  const agent = {
+    session: { header: { cwd: root } },
+    inject(message) {
+      messages.push(message)
+    },
+  }
+  const logger = { warn: (message) => warningsAttach.push(message), info() {} }
+  await attachMod.attachMatchingSkills(agent, join('/other', 'src', 'a.ts'), [candidate], logger)
+  assert(messages.length === 0, 'skill glob matched a path outside the session')
+
+  await writeFile(skillFile, `---\nname: attach-skill\ndescription: d\n---\n${'z'.repeat(1024 * 1024)}`)
+  await attachMod.attachMatchingSkills(agent, join(root, 'src', 'a.ts'), [candidate], logger)
+  assert(messages.length === 0, 'truncated skill was injected')
+  await writeFile(skillFile, '---\nname: attach-skill\ndescription: d\n---\nshort body\n')
+  await attachMod.attachMatchingSkills(agent, join(root, 'src', 'a.ts'), [candidate], logger)
+  assert(messages.length === 1 && JSON.stringify(messages[0]).includes('short body'), 'shortened skill did not attach')
+  await writeFile(skillFile, '---\nname: attach-skill\ndescription: d\n---\nedited body\n')
+  await attachMod.attachMatchingSkills(agent, join(root, 'src', 'a.ts'), [candidate], logger)
+  assert(messages.length === 2 && JSON.stringify(messages[1]).includes('edited body'), 'edited skill did not reattach')
 } finally {
   if (savedConfigDir === undefined) delete process.env.CURSOR_CONFIG_DIR
   else process.env.CURSOR_CONFIG_DIR = savedConfigDir
