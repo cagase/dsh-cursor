@@ -192,6 +192,70 @@ try {
   }
   await waitFor(() => teamDisposed.includes('from-a'), 'disposed member MCP server stayed mounted')
   assert(sessions.liveCwds().includes(cwdB) && !sessions.liveCwds().includes(cwdA), `cwd set after dispose: ${sessions.liveCwds().join(', ')}`)
+  for (const listener of teamListeners.get('agent/disposed') ?? []) {
+    listener({ agent: { session: { id: 'member-b', header: { cwd: cwdB } } } })
+  }
+  await waitFor(() => !sessions.liveCwds().includes(cwdB), 'second member cwd stayed live')
+
+  const cwdOverlapA = join(root, 'overlap-a')
+  const cwdOverlapB = join(root, 'overlap-b')
+  await mkdir(cwdOverlapA, { recursive: true })
+  await mkdir(cwdOverlapB, { recursive: true })
+  const overlapServers = new Map([
+    [cwdOverlapA, new Map([['echo', { command: 'echo', args: ['overlap-a'], baseDir: cwdOverlapA }]])],
+    [cwdOverlapB, new Map([['echo', { command: 'echo', args: ['overlap-b'], baseDir: cwdOverlapB }]])],
+  ])
+  let releaseFirst
+  let loads = 0
+  let critical = 0
+  let maxCritical = 0
+  const enter = () => {
+    critical += 1
+    maxCritical = Math.max(maxCritical, critical)
+  }
+  const leave = () => {
+    critical -= 1
+  }
+  const overlapMounts = []
+  const overlapDisposed = []
+  const overlapListeners = new Map()
+  mcp.registerMcp(
+    {
+      on: (event, listener) => overlapListeners.set(event, listener),
+      effect: () => {},
+      plugin: (_plugin, config) => {
+        enter()
+        overlapMounts.push(config)
+        leave()
+        return {
+          dispose: () => {
+            enter()
+            overlapDisposed.push(config.args?.[0])
+            leave()
+          },
+        }
+      },
+    },
+    { warn() {}, info() {} },
+    {
+      load: async (cwd) => {
+        loads += 1
+        if (loads === 1) await new Promise((resolve) => { releaseFirst = resolve })
+        return { mcpServers: overlapServers.get(cwd) ?? new Map() }
+      },
+    },
+    1000,
+  )
+  overlapListeners.get('agent/session-start')({ agent: { session: { id: 'overlap-a', header: { cwd: cwdOverlapA } } } })
+  await waitFor(() => typeof releaseFirst === 'function', 'first reconcile did not reach load')
+  overlapListeners.get('agent/session-start')({ agent: { session: { id: 'overlap-b', header: { cwd: cwdOverlapB } } } })
+  releaseFirst()
+  await waitFor(
+    () => overlapMounts.some((config) => config.args?.[0] === 'overlap-a') && overlapMounts.some((config) => config.args?.[0] === 'overlap-b'),
+    `latest membership was not mounted: ${overlapMounts.map((config) => config.args?.[0]).join(', ')}`,
+  )
+  assert(!overlapDisposed.includes('overlap-a'), 'a still-desired server was left disposed')
+  assert(maxCritical <= 1, `reconcile mount sections overlapped: ${maxCritical}`)
 } finally {
   if (savedConfigDir === undefined) delete process.env.CURSOR_CONFIG_DIR
   else process.env.CURSOR_CONFIG_DIR = savedConfigDir

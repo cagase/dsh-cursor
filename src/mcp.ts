@@ -112,14 +112,12 @@ export function registerMcp(
   toolCallTimeoutMs: number,
 ): void {
   const mounted = new Map<string, { dispose: () => void; fingerprint: string }>()
-  let reconcileGeneration = 0
-  const reconcile = async () => {
-    const generation = ++reconcileGeneration
+  let reconcileRunning = false
+  let reconcileDirty = false
+  const reconcileOnce = async () => {
     const wanted: { mountName: string; fingerprint: string; config: Record<string, unknown>; label: string }[] = []
     for (const cwd of liveCwds()) {
-      if (generation !== reconcileGeneration) return
       const settings = await loader.load(cwd)
-      if (generation !== reconcileGeneration) return
       const claimed = new Map<string, string>()
       for (const [name, entry] of settings.mcpServers) {
         const normalized = await normalizeCursorServer(name, entry, cwd, toolCallTimeoutMs)
@@ -163,10 +161,8 @@ export function registerMcp(
         })
       }
     }
-    if (generation !== reconcileGeneration) return
     const desired = new Set(wanted.map((item) => item.mountName))
     for (const item of wanted) {
-      if (generation !== reconcileGeneration) return
       const current = mounted.get(item.mountName)
       if (current?.fingerprint === item.fingerprint) continue
       current?.dispose()
@@ -176,7 +172,7 @@ export function registerMcp(
         const mcp = (await import(specifier)) as { apply?: (ctx: HostContext, config: unknown) => unknown }
         if (typeof mcp.apply !== 'function') {
           logger.warn?.('cursor: @deepseek-ai/dsh-mcp-client has no apply(); mcp.json skipped')
-          return
+          continue
         }
         const child = ctx.plugin(mcp as never, item.config as never)
         mounted.set(item.mountName, {
@@ -194,11 +190,24 @@ export function registerMcp(
         logger.warn?.(`cursor: cannot mount MCP server ${item.label}: ${errorMessage(error)}`)
       }
     }
-    if (generation !== reconcileGeneration) return
     for (const [serverName, entry] of mounted) {
       if (desired.has(serverName)) continue
       entry.dispose()
       mounted.delete(serverName)
+    }
+  }
+  const reconcile = async () => {
+    reconcileDirty = true
+    if (reconcileRunning) return
+    reconcileRunning = true
+    try {
+      do {
+        reconcileDirty = false
+        await reconcileOnce()
+      } while (reconcileDirty)
+    } finally {
+      reconcileRunning = false
+      if (reconcileDirty) void reconcile()
     }
   }
 
