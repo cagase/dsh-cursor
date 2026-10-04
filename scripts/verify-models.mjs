@@ -41,6 +41,8 @@ const ENV_KEYS = [
   'CURSOR_AUTH_TOKEN',
   'CURSOR_AGENT_BIN',
   'CURSOR_CHATS_DIR',
+  'CURSOR_CONFIG_DIR',
+  'XDG_CONFIG_HOME',
   'FAKE_AGENT_DIR',
   'FAKE_AGENT_STREAM',
   'FAKE_AGENT_ARGV_LOG',
@@ -390,6 +392,8 @@ try {
   const restore = applyEnv({
     HOME: homeDir,
     CURSOR_CHATS_DIR: undefined,
+    CURSOR_CONFIG_DIR: undefined,
+    XDG_CONFIG_HOME: undefined,
     CURSOR_API_KEY: 'fixture-key',
     CURSOR_AGENT_BIN: fakeAgent,
     FAKE_AGENT_STREAM: join(fixtureDir, 'stream-json.jsonl'),
@@ -431,6 +435,15 @@ try {
 
 
   assert(cli.cursorChatsRoot() === chatsRoot, `chats root must follow HOME: ${cli.cursorChatsRoot()}`)
+  const configRoot = join(tmp, 'cfg-root')
+  const xdgHome = join(tmp, 'xdg')
+  process.env.XDG_CONFIG_HOME = xdgHome
+  process.env.CURSOR_CONFIG_DIR = configRoot
+  assert(cli.cursorChatsRoot() === join(configRoot, 'chats'), `config dir did not win: ${cli.cursorChatsRoot()}`)
+  delete process.env.CURSOR_CONFIG_DIR
+  assert(cli.cursorChatsRoot() === join(xdgHome, 'cursor', 'chats'), `xdg did not own chats: ${cli.cursorChatsRoot()}`)
+  delete process.env.XDG_CONFIG_HOME
+  assert(cli.cursorChatsRoot() === chatsRoot, `chats root did not return to HOME: ${cli.cursorChatsRoot()}`)
   const replayAdapter = new adapter.CursorLlmAdapter()
   const replay = await collect(replayAdapter, {
     provider: 'cursor',

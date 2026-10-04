@@ -37,9 +37,17 @@ export declare function missingBinaryError(): CursorCliError;
 export declare function authError(message?: string): CursorCliError;
 export declare function resolveAgentBin(): Promise<string | undefined>;
 /**
- * Absolute root of the CLI's local chat store. Production uses the CLI default
- * `~/.cursor/chats` (capture §6); `CURSOR_CHATS_DIR` overrides it so the
- * offline suite can point the adapter and its stand-in at one directory.
+ * The Cursor CLI's config root: `CURSOR_CONFIG_DIR` when set and non-blank,
+ * else `$XDG_CONFIG_HOME/cursor`, else `~/.cursor`.
+ *
+ * This is the root that owns `chats/`. `CURSOR_DATA_DIR` does not relocate it.
+ */
+export declare function cursorConfigRoot(): string;
+/**
+ * Absolute root of the CLI's local chat store: `<config root>/chats`.
+ *
+ * `CURSOR_CHATS_DIR` overrides it so the offline suite can point the adapter
+ * and its stand-in at one directory.
  */
 export declare function cursorChatsRoot(): string;
 /**
