@@ -1,8 +1,9 @@
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 /**
@@ -40,6 +41,8 @@ const ENV_KEYS = [
   'CURSOR_AUTH_TOKEN',
   'CURSOR_AGENT_BIN',
   'CURSOR_CHATS_DIR',
+  'CURSOR_CONFIG_DIR',
+  'XDG_CONFIG_HOME',
   'FAKE_AGENT_DIR',
   'FAKE_AGENT_STREAM',
   'FAKE_AGENT_ARGV_LOG',
@@ -382,11 +385,15 @@ try {
   // is os.homedir(), so this exercises it rather than a test-only override).
   const homeDir = join(tmp, 'home')
   const chatsRoot = join(homeDir, '.cursor', 'chats')
-  const workspaceHash = '766fe73c06573698c270309a02f752f8'
+  const captureHash = '766fe73c06573698c270309a02f752f8'
+  const workspaceHash = createHash('md5').update(resolve(process.cwd())).digest('hex')
   const storePath = (id) => join(chatsRoot, workspaceHash, id, 'store.db')
+  const captureStorePath = (id) => join(chatsRoot, captureHash, id, 'store.db')
   const restore = applyEnv({
     HOME: homeDir,
     CURSOR_CHATS_DIR: undefined,
+    CURSOR_CONFIG_DIR: undefined,
+    XDG_CONFIG_HOME: undefined,
     CURSOR_API_KEY: 'fixture-key',
     CURSOR_AGENT_BIN: fakeAgent,
     FAKE_AGENT_STREAM: join(fixtureDir, 'stream-json.jsonl'),
@@ -422,12 +429,21 @@ try {
     `the stand-in must reject a v5 id exactly like the live CLI: status=${v5Probe.status} stderr=${JSON.stringify(v5Probe.stderr)}`,
   )
   assert(
-    !existsSync(storePath(v5Id)),
+    !existsSync(captureStorePath(v5Id)),
     'a rejected id must not leave a chat store behind (the live CLI rejects before creating it)',
   )
 
 
   assert(cli.cursorChatsRoot() === chatsRoot, `chats root must follow HOME: ${cli.cursorChatsRoot()}`)
+  const configRoot = join(tmp, 'cfg-root')
+  const xdgHome = join(tmp, 'xdg')
+  process.env.XDG_CONFIG_HOME = xdgHome
+  process.env.CURSOR_CONFIG_DIR = configRoot
+  assert(cli.cursorChatsRoot() === join(configRoot, 'chats'), `config dir did not win: ${cli.cursorChatsRoot()}`)
+  delete process.env.CURSOR_CONFIG_DIR
+  assert(cli.cursorChatsRoot() === join(xdgHome, 'cursor', 'chats'), `xdg did not own chats: ${cli.cursorChatsRoot()}`)
+  delete process.env.XDG_CONFIG_HOME
+  assert(cli.cursorChatsRoot() === chatsRoot, `chats root did not return to HOME: ${cli.cursorChatsRoot()}`)
   const replayAdapter = new adapter.CursorLlmAdapter()
   const replay = await collect(replayAdapter, {
     provider: 'cursor',
@@ -845,8 +861,8 @@ try {
     { encoding: 'utf8', env: { ...process.env } },
   )
   assert(silentProbe.status === 0 && (silentProbe.stderr ?? '') === '', `an unknown resume must be silent: ${silentProbe.status} ${JSON.stringify(silentProbe.stderr)}`)
-  assert(existsSync(storePath(silentId)), 'an unknown resume must silently adopt the id')
-  rmSync(join(chatsRoot, workspaceHash, silentId), { recursive: true, force: true })
+  assert(existsSync(captureStorePath(silentId)), 'an unknown resume must silently adopt the id')
+  rmSync(join(chatsRoot, captureHash, silentId), { recursive: true, force: true })
 
   await collectStop(deadAdapter, {
     provider: 'cursor',

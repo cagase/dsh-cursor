@@ -37,22 +37,30 @@ export declare function missingBinaryError(): CursorCliError;
 export declare function authError(message?: string): CursorCliError;
 export declare function resolveAgentBin(): Promise<string | undefined>;
 /**
- * Absolute root of the CLI's local chat store. Production uses the CLI default
- * `~/.cursor/chats` (capture §6); `CURSOR_CHATS_DIR` overrides it so the
- * offline suite can point the adapter and its stand-in at one directory.
+ * The Cursor CLI's config root: `CURSOR_CONFIG_DIR` when set and non-blank,
+ * else `$XDG_CONFIG_HOME/cursor`, else `~/.cursor`.
+ *
+ * This is the root that owns `chats/`. `CURSOR_DATA_DIR` does not relocate it.
+ */
+export declare function cursorConfigRoot(): string;
+/**
+ * Absolute root of the CLI's local chat store: `<config root>/chats`.
+ *
+ * `CURSOR_CHATS_DIR` overrides it so the offline suite can point the adapter
+ * and its stand-in at one directory.
  */
 export declare function cursorChatsRoot(): string;
 /**
- * True when the CLI already stores a chat for `sessionId`.
- *
- * A `--resume` for a chat the CLI does not have exits 0 with empty stderr and
- * silently creates a fresh chat that adopts the requested id (t3 F2), so the
- * chat's existence must be established BEFORE choosing `--resume`. The
- * workspace-hash directory is opaque and is therefore never assumed: every
- * directory under the chats root is scanned. Nothing about mtime or size is
- * used as a signal.
+ * The `store.db` the CLI resumes for this session under the spawn cwd:
+ * `<chats root>/<md5(resolve(cwd))>/<id>/store.db`.
+ * Returns undefined when the path cannot be established. Callers treat that
+ * as not confirmed and keep the full bootstrap.
  */
-export declare function hasCursorChatStore(sessionId: string): Promise<boolean>;
+export declare function cursorChatStorePath(sessionId: string, cwd?: string): string | undefined;
+/** True only when this workspace's chat store exists and is non-empty. */
+export declare function hasCursorChatStore(sessionId: string, cwd?: string): Promise<boolean>;
+/** True when that chat's store file exists and is non-empty. */
+export declare function cursorChatHasTranscript(sessionId: string, cwd?: string): Promise<boolean>;
 export declare function probeCursorCli(signal?: AbortSignal): Promise<CursorCliProbe>;
 /** One advertised catalog entry: the id handed to `--model` plus its label. */
 export interface CursorCatalogEntry {

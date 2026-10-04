@@ -1,4 +1,5 @@
 import type { HostContext, PluginLogger } from '../types.js'
+import { forgetSessionCwd, noteSessionCwd, sessionCwd } from './session-cwd.js'
 import { isAbort, isPlainObject } from '../util.js'
 import {
   AUTH_CODE,
@@ -277,13 +278,14 @@ export class CursorLlmAdapter {
         liveSlugs: this.catalog?.ids ?? [],
       })
       turn = { plan: this.sessions.plan(options) }
+      const cwd = options.cwd ?? sessionCwd(options.sessionId) ?? process.cwd()
       // t3 F2: `--resume <unknown id>` exits 0 with empty stderr and silently
       // opens a fresh chat that adopts the id, so a dead continuation cannot be
       // detected from the stream (init.session_id is the requested id either
-      // way). Check the CLI's own chat store first and re-anchor with the full
+      // way). Check this workspace's store.db first and re-anchor with the full
       // DSH context instead of resuming a chat that no longer exists.
       if (turn.plan.session.mode === 'resume' && turn.plan.session.id !== undefined && turn.plan.reanchor) {
-        if (!(await hasCursorChatStore(turn.plan.session.id))) {
+        if (!(await hasCursorChatStore(turn.plan.session.id, cwd))) {
           this.logger?.warn?.(
             `cursor: CLI chat "${turn.plan.session.id}" is gone; re-anchoring with the full DSH context`,
           )
@@ -293,7 +295,7 @@ export class CursorLlmAdapter {
       const translator = new StreamChunkTranslator()
       let sawError: { message: string; code: string } | undefined
       for await (const event of streamAgentTurn(probe.bin, wire, turn, {
-        cwd: process.cwd(),
+        cwd,
         signal: options.signal,
       })) {
         const failure = eventFailure(event)
@@ -505,6 +507,12 @@ export function registerCursorAdapter(host: HostContext, logger: PluginLogger): 
     return
   }
   llm.registerAdapter([PROVIDER_ID], new CursorLlmAdapter(logger))
+  host.on('agent/session-start', (payload: { agent?: { session?: { id?: unknown; header?: { cwd?: string } } } }) => {
+    noteSessionCwd(payload.agent?.session?.id, payload.agent?.session?.header?.cwd)
+  })
+  host.on('agent/disposed', (payload: { agent?: { session?: { id?: unknown } } }) => {
+    forgetSessionCwd(payload.agent?.session?.id)
+  })
   const directory = {
     provider: PROVIDER_ID,
     displayName: 'Cursor',

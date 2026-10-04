@@ -1,8 +1,9 @@
 import { spawn } from 'node:child_process'
-import { access, readdir, stat } from 'node:fs/promises'
+import { createHash } from 'node:crypto'
+import { access, stat } from 'node:fs/promises'
 import { constants } from 'node:fs'
 import { homedir } from 'node:os'
-import { delimiter, join } from 'node:path'
+import { delimiter, join, resolve } from 'node:path'
 import { createInterface } from 'node:readline'
 import { isAbort, isPlainObject } from '../util.js'
 import { grokFamilyFor, grokSlugVocabulary, parseGrokRoute } from './grok.js'
@@ -121,39 +122,71 @@ async function isExecutable(path: string): Promise<boolean> {
 }
 
 /**
- * Absolute root of the CLI's local chat store. Production uses the CLI default
- * `~/.cursor/chats` (capture §6); `CURSOR_CHATS_DIR` overrides it so the
- * offline suite can point the adapter and its stand-in at one directory.
+ * The Cursor CLI's config root: `CURSOR_CONFIG_DIR` when set and non-blank,
+ * else `$XDG_CONFIG_HOME/cursor`, else `~/.cursor`.
+ *
+ * This is the root that owns `chats/`. `CURSOR_DATA_DIR` does not relocate it.
  */
-export function cursorChatsRoot(): string {
-  const override = process.env.CURSOR_CHATS_DIR?.trim()
-  return override === undefined || override === '' ? join(homedir(), '.cursor', 'chats') : override
+export function cursorConfigRoot(): string {
+  const configured = process.env.CURSOR_CONFIG_DIR
+  if (configured !== undefined && configured.trim() !== '') return configured
+  const xdg = process.env.XDG_CONFIG_HOME
+  if (xdg !== undefined && xdg.trim() !== '') return join(xdg, 'cursor')
+  return join(homedir(), '.cursor')
 }
 
 /**
- * True when the CLI already stores a chat for `sessionId`.
+ * Absolute root of the CLI's local chat store: `<config root>/chats`.
  *
- * A `--resume` for a chat the CLI does not have exits 0 with empty stderr and
- * silently creates a fresh chat that adopts the requested id (t3 F2), so the
- * chat's existence must be established BEFORE choosing `--resume`. The
- * workspace-hash directory is opaque and is therefore never assumed: every
- * directory under the chats root is scanned. Nothing about mtime or size is
- * used as a signal.
+ * `CURSOR_CHATS_DIR` overrides it so the offline suite can point the adapter
+ * and its stand-in at one directory.
  */
-export async function hasCursorChatStore(sessionId: string): Promise<boolean> {
-  const id = sessionId.trim()
-  if (id === '') return false
-  const root = cursorChatsRoot()
-  const entries = await readdir(root, { withFileTypes: true }).catch(() => undefined)
-  if (entries === undefined) return false
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue
-    const found = await stat(join(root, entry.name, id))
-      .then((info) => info.isDirectory())
-      .catch(() => false)
-    if (found) return true
+export function cursorChatsRoot(): string {
+  const override = process.env.CURSOR_CHATS_DIR?.trim()
+  return override === undefined || override === '' ? join(cursorConfigRoot(), 'chats') : override
+}
+
+/**
+ * The `store.db` the CLI resumes for this session under the spawn cwd:
+ * `<chats root>/<md5(resolve(cwd))>/<id>/store.db`.
+ * Returns undefined when the path cannot be established. Callers treat that
+ * as not confirmed and keep the full bootstrap.
+ */
+export function cursorChatStorePath(sessionId: string, cwd?: string): string | undefined {
+  try {
+    const id = typeof sessionId === 'string' ? sessionId.trim() : ''
+    const workspace = typeof cwd === 'string' ? cwd.trim() : ''
+    if (id === '' || workspace === '') return undefined
+    const root = cursorChatsRoot().trim()
+    if (root === '') return undefined
+    const resolved = resolve(workspace)
+    if (resolved.trim() === '') return undefined
+    const hash = createHash('md5').update(resolved).digest('hex')
+    return join(root, hash, id, 'store.db')
+  } catch {
+    return undefined
   }
-  return false
+}
+
+async function cursorChatConfirmed(sessionId: string, cwd?: string): Promise<boolean> {
+  const path = cursorChatStorePath(sessionId, cwd)
+  if (path === undefined) return false
+  try {
+    const info = await stat(path)
+    return info.isFile() && info.size > 0
+  } catch {
+    return false
+  }
+}
+
+/** True only when this workspace's chat store exists and is non-empty. */
+export async function hasCursorChatStore(sessionId: string, cwd?: string): Promise<boolean> {
+  return cursorChatConfirmed(sessionId, cwd)
+}
+
+/** True when that chat's store file exists and is non-empty. */
+export async function cursorChatHasTranscript(sessionId: string, cwd?: string): Promise<boolean> {
+  return cursorChatConfirmed(sessionId, cwd)
 }
 
 export async function probeCursorCli(signal?: AbortSignal): Promise<CursorCliProbe> {
@@ -632,6 +665,19 @@ function isSessionInUse(detail: string): boolean {
   return /already in use/i.test(detail)
 }
 
+function isMissingChat(detail: string): boolean {
+  const lower = detail.toLowerCase()
+  return (
+    lower.includes('session not found')
+    || lower.includes('no session found')
+    || lower.includes('no such session')
+    || lower.includes('chat not found')
+    || lower.includes('session does not exist')
+    || lower.includes('unknown session')
+    || (lower.includes('resume') && lower.includes('not found'))
+  )
+}
+
 async function* attemptAgentTurn(
   bin: string,
   args: readonly string[],
@@ -716,12 +762,25 @@ export async function* streamAgentTurn(
     && turn.plan.session.id
     && isSessionInUse(first.stderr)
   ) {
-    const resumed: AgentTurnPlan = { ...turn.plan, session: { mode: 'resume', id: turn.plan.session.id } }
+    const hasTranscript = await cursorChatHasTranscript(turn.plan.session.id, options.cwd)
+    const resumeText = turn.plan.resumePositional
+    const resumed: AgentTurnPlan = {
+      ...turn.plan,
+      positional: hasTranscript && resumeText !== undefined && resumeText !== '' ? resumeText : turn.plan.positional,
+      session: { mode: 'resume', id: turn.plan.session.id },
+      bootstrap: !hasTranscript,
+    }
+    turn.plan = resumed
     const second = yield* attemptAgentTurn(bin, buildAgentArgs(wireModel, resumed, options.cwd), options)
     if (second.failure) yield { type: 'error', error: second.failure.message, done: true, success: false }
     return
   }
-  if (first.failure && turn.plan.session.mode === 'resume' && turn.plan.reanchor) {
+  if (
+    first.failure
+    && turn.plan.session.mode === 'resume'
+    && turn.plan.reanchor
+    && isMissingChat(`${first.stderr}\n${first.failure.message}`)
+  ) {
     const fresh = turn.plan.reanchor()
     turn.plan = fresh
     const second = yield* attemptAgentTurn(bin, buildAgentArgs(wireModel, fresh, options.cwd), options)
