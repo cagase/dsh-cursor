@@ -12,12 +12,13 @@ import { isFileTouchTool } from './hooks/names.js'
 import { registerMcp } from './mcp.js'
 import { registerCursorAdapter } from './models/adapter.js'
 import { createPermissionsGate } from './permissions.js'
+import { forgetLiveSession, liveCwds, noteLiveSession } from './live-sessions.js'
 import { attachGlobRules, collectRules, injectSessionRules, ruleCatalogCandidates, ruleWatchRoots } from './rules/index.js'
 import { CursorSettingsLoader } from './settings.js'
 import { attachMatchingSkills } from './skills/attach.js'
 import { CursorSkillProvider, PROVIDER_NAME } from './skills/provider.js'
 import type { AgentLike, PluginLogger, SkillCandidate, SkillProviderControl, ToolExecutionLike } from './types.js'
-import { toolFilePath } from './util.js'
+import { errorMessage, toolFilePath } from './util.js'
 import { watchPaths } from './watch.js'
 import { projectCursorDir, userCursorDir } from './roots.js'
 
@@ -103,8 +104,13 @@ export function apply(ctx: Context | import('./types.js').HostContext, config: D
   }
 
   host.on('agent/session-start', (payload: { source?: string; agent: AgentLike }) => {
-    if (payload.source === 'resume') return
-    void injectSessionRules(payload.agent, logger)
+    noteLiveSession(payload.agent.session.id, payload.agent.session.header.cwd)
+    void injectSessionRules(payload.agent, logger, payload.source).catch((error) => {
+      logger.warn?.(`cursor: session rule inject failed: ${errorMessage(error)}`)
+    })
+  })
+  host.on('agent/disposed', (payload: { agent: AgentLike }) => {
+    forgetLiveSession(payload.agent.session.id, payload.agent.session.header.cwd)
   })
 
   host.on('tools/result', (exec: ToolExecutionLike) => {
@@ -112,13 +118,17 @@ export function apply(ctx: Context | import('./types.js').HostContext, config: D
     const agent = exec.agent
     const filePath = toolFilePath(exec.arguments)
     if (!agent || !filePath) return
-    void attachGlobRules(agent, filePath, logger)
+    void attachGlobRules(agent, filePath, logger).catch((error) => {
+      logger.warn?.(`cursor: glob rule attach failed: ${errorMessage(error)}`)
+    })
     void (async () => {
       if (!provider) return
       const listed = await provider.list({ cwd: agent.session.header.cwd })
       const candidates = Array.isArray(listed) ? listed : listed.candidates
       await attachMatchingSkills(agent, filePath, candidates, logger)
-    })()
+    })().catch((error) => {
+      logger.warn?.(`cursor: skill attach failed: ${errorMessage(error)}`)
+    })
   })
 
   const permissionGate = resolved.permissions ? createPermissionsGate(logger, loader) : undefined
@@ -139,16 +149,27 @@ export function apply(ctx: Context | import('./types.js').HostContext, config: D
       loader.invalidate()
       invalidateSkills?.()
     }
-    const ensure = (cwd?: string) => {
+    let watchGeneration = 0
+    const ensure = () => {
+      const generation = ++watchGeneration
       for (const stop of stoppers.splice(0)) stop()
+      const cwds = liveCwds()
       const roots = [userCursorDir(resolved.userCursorDir)]
-      if (cwd) roots.push(projectCursorDir(cwd), join(cwd, '.cursorrules'))
-      void Promise.all([ruleWatchRoots(cwd)]).then(([ruleRoots]) => {
-        stoppers.push(watchPaths([...roots, ...ruleRoots], logger, refresh))
+      for (const cwd of cwds) roots.push(projectCursorDir(cwd), join(cwd, '.cursorrules'))
+      void Promise.all(cwds.map((cwd) => ruleWatchRoots(cwd))).then((ruleRootLists) => {
+        if (generation !== watchGeneration) return
+        stoppers.push(watchPaths([...roots, ...ruleRootLists.flat()], logger, refresh))
+      }).catch((error) => {
+        logger.warn?.(`cursor: asset watch setup failed: ${errorMessage(error)}`)
       })
     }
     host.on('agent/session-start', (payload: { agent: AgentLike }) => {
-      ensure(payload.agent.session.header.cwd)
+      noteLiveSession(payload.agent.session.id, payload.agent.session.header.cwd)
+      ensure()
+    })
+    host.on('agent/disposed', (payload: { agent: AgentLike }) => {
+      forgetLiveSession(payload.agent.session.id, payload.agent.session.header.cwd)
+      ensure()
     })
     host.effect(
       () => () => {

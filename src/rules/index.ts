@@ -1,4 +1,5 @@
-import { basename, dirname, join, normalize } from 'node:path'
+import { createHash } from 'node:crypto'
+import { basename, dirname, isAbsolute, join, normalize, relative, resolve } from 'node:path'
 import { dirExists, fileExists, listDir, readText } from '../fs.js'
 import { FrontmatterError, parseRuleFile, type ParsedRuleFile } from '../parse.js'
 import { findRepoRoot, projectRulesDir, relativeLabel } from '../roots.js'
@@ -165,8 +166,21 @@ export function ruleCatalogCandidates(rules: readonly LoadedRule[]): SkillCandid
   return candidates
 }
 
-export function matchingGlobRules(rules: readonly LoadedRule[], filePath: string): LoadedRule[] {
-  return rules.filter((rule) => rule.kind === 'glob' && rule.globs?.some((glob) => matchGlob(glob, filePath)))
+export function matchingGlobRules(rules: readonly LoadedRule[], filePath: string, cwd?: string): LoadedRule[] {
+  return rules.filter((rule) => rule.kind === 'glob' && rule.globs?.some((glob) => scopedGlobMatch(glob, filePath, cwd)))
+}
+
+function scopedGlobMatch(pattern: string, filePath: string, cwd?: string): boolean {
+  let glob = pattern.replace(/\\/g, '/').trim()
+  while (glob.startsWith('./')) glob = glob.slice(2)
+  if (glob.startsWith('/')) glob = glob.slice(1)
+  let target = filePath.replace(/\\/g, '/')
+  if (cwd !== undefined && cwd !== '') {
+    const rel = relative(resolve(cwd), resolve(target)).replace(/\\/g, '/')
+    if (rel === '' || rel === '..' || rel.startsWith('../') || isAbsolute(rel)) return false
+    target = rel
+  }
+  return matchGlob(glob, target)
 }
 
 const injected = new WeakMap<object, Set<string>>()
@@ -182,7 +196,11 @@ function remember(agent: AgentLike, key: string): boolean {
   return true
 }
 
-export async function injectSessionRules(agent: AgentLike, logger: PluginLogger): Promise<void> {
+export async function injectSessionRules(
+  agent: AgentLike,
+  logger: PluginLogger,
+  source?: string,
+): Promise<void> {
   const cwd = agent.session.header.cwd
   if (!cwd) return
   try {
@@ -197,7 +215,15 @@ export async function injectSessionRules(agent: AgentLike, logger: PluginLogger)
     const nested = await collectSubdirAgentsMd(cwd, logger)
     sections.push(...nested)
     if (sections.length === 0) return
-    agent.inject(reminder(PLUGIN_SOURCE, renderAlwaysApply(sections)))
+    const body = renderAlwaysApply(sections)
+    const hash = createHash('sha256').update(body).digest('hex').slice(0, 16)
+    const key = `always:${hash}`
+    if (source === 'resume') {
+      if (!remember(agent, key)) return
+    } else {
+      remember(agent, key)
+    }
+    agent.inject(reminder(PLUGIN_SOURCE, body))
   } catch (error) {
     logger.warn?.(`cursor: failed to inject always-apply rules: ${errorMessage(error)}`)
   }
@@ -207,9 +233,10 @@ export async function attachGlobRules(agent: AgentLike, filePath: string, logger
   const cwd = agent.session.header.cwd
   if (!cwd) return
   try {
-    const rules = matchingGlobRules(await collectRules(cwd, logger), filePath)
+    const rules = matchingGlobRules(await collectRules(cwd, logger), filePath, cwd)
     for (const rule of rules) {
-      if (!remember(agent, `rule:${rule.file}`)) continue
+      const hash = createHash('sha256').update(rule.body).digest('hex').slice(0, 16)
+      if (!remember(agent, `rule:${rule.file}:${hash}`)) continue
       agent.inject(
         reminder(
           PLUGIN_SOURCE,
