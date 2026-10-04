@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto'
 import { dirname } from 'node:path'
 import { readText } from '../fs.js'
 import { parseSkillFile } from '../parse.js'
@@ -20,12 +19,12 @@ function remember(agent: AgentLike, key: string): boolean {
   return true
 }
 
-export function skillMatchesPath(candidate: SkillCandidate, filePath: string, root?: string): boolean {
+export function skillMatchesPath(candidate: SkillCandidate, filePath: string): boolean {
   const metadata = candidate.metadata
   const paths = Array.isArray(metadata?.paths) ? metadata.paths.filter((entry): entry is string => typeof entry === 'string') : []
   const globs = Array.isArray(metadata?.globs) ? metadata.globs.filter((entry): entry is string => typeof entry === 'string') : []
   if (paths.length === 0 && globs.length === 0) return false
-  return [...paths, ...globs].some((pattern) => matchGlob(pattern, filePath, root))
+  return [...paths, ...globs].some((pattern) => matchGlob(pattern, filePath))
 }
 
 export async function attachMatchingSkills(
@@ -35,15 +34,13 @@ export async function attachMatchingSkills(
   logger: PluginLogger,
 ): Promise<void> {
   for (const candidate of candidates) {
-    const cwd = agent.session.header.cwd
-    if (!skillMatchesPath(candidate, filePath, cwd)) continue
+    if (!skillMatchesPath(candidate, filePath)) continue
     const locator = candidate.locator as { file?: string; kind?: string } | undefined
     const file = locator?.file ?? candidate.path
     if (!file || locator?.kind === 'rule' || locator?.kind === 'agent') continue
+    if (!remember(agent, `skill:${file}`)) continue
     try {
       const parsed = parseSkillFile(await readText(file), candidate.name)
-      const hash = createHash('sha256').update(parsed.body).digest('hex').slice(0, 16)
-      if (!remember(agent, `skill:${file}:${hash}`)) continue
       const name = catalogName(parsed.frontmatter.name, candidate.name)
       agent.inject(
         reminder(
