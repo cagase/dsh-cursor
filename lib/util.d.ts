@@ -8,7 +8,7 @@ export declare function errorMessage(error: unknown): string;
 export declare function isAbort(error: unknown): boolean;
 export declare function isMissing(error: unknown): boolean;
 /** Convert a glob (`**`, `*`, `?`) to an unanchored-or-full-path matcher. */
-export declare function matchGlob(pattern: string, filePath: string): boolean;
+export declare function matchGlob(pattern: string, filePath: string, root?: string): boolean;
 export declare function toolFilePath(args: unknown): string | undefined;
 export declare function toolCommand(args: unknown): string | undefined;
 export declare function pluginUserMessage(plugin: string, text: string, form?: 'instructions' | 'notice'): PluginUserMessage;

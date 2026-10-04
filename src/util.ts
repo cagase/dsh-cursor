@@ -1,5 +1,5 @@
 import { homedir } from 'node:os'
-import { basename } from 'node:path'
+import { basename, isAbsolute, relative, resolve } from 'node:path'
 
 export function expandHome(path: string): string {
   if (path === '~') return homedir()
@@ -47,18 +47,33 @@ export function isMissing(error: unknown): boolean {
 }
 
 /** Convert a glob (`**`, `*`, `?`) to an unanchored-or-full-path matcher. */
-export function matchGlob(pattern: string, filePath: string): boolean {
-  const path = filePath.replace(/\\/g, '/')
-  const glob = pattern.replace(/\\/g, '/').trim()
-  if (glob === '' || glob === '*') return true
+export function matchGlob(pattern: string, filePath: string, root?: string): boolean {
+  const glob = normalizeGlob(pattern)
+  if (glob === '' || glob === '*') return root === undefined || scopedRelative(root, filePath) !== undefined
+  const path = root === undefined ? filePath.replace(/\\/g, '/') : scopedRelative(root, filePath)
+  if (path === undefined) return false
   const regex = globToRegExp(glob)
   if (regex.test(path)) return true
   if (!glob.includes('/')) return regex.test(basename(path))
   return false
 }
 
+function normalizeGlob(pattern: string): string {
+  let glob = pattern.replace(/\\/g, '/').trim()
+  while (glob.startsWith('./')) glob = glob.slice(2)
+  if (glob.startsWith('/')) glob = glob.slice(1)
+  return glob
+}
+
+/** Path relative to root, or undefined when it sits outside that directory. */
+function scopedRelative(root: string, filePath: string): string | undefined {
+  const rel = relative(resolve(root), resolve(filePath)).replace(/\\/g, '/')
+  if (rel === '' || rel === '..' || rel.startsWith('../') || isAbsolute(rel)) return undefined
+  return rel
+}
+
 function globToRegExp(glob: string): RegExp {
-  let out = '^'
+  let out = '(?:^|/)'
   for (let i = 0; i < glob.length; i++) {
     const char = glob[i]!
     const next = glob[i + 1]
