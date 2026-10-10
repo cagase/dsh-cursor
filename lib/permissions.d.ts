@@ -13,7 +13,7 @@ export type PermissionVerdict = {
     reason: string;
 } | undefined;
 export declare function parseToken(raw: string): ParsedToken | undefined;
-export declare function evaluateCursorPermissions(allow: readonly string[], deny: readonly string[], exec: ToolExecutionLike): PermissionVerdict;
+export declare function evaluateCursorPermissions(allow: readonly string[], deny: readonly string[], exec: ToolExecutionLike, cwd?: string): PermissionVerdict;
 /**
  * Deny-wins only. `allow` does not skip DSH approval — unmatched and allowed
  * calls fall through to `next()`.

@@ -1,6 +1,6 @@
 import type { ChildProcess } from 'node:child_process'
 import type { HostContext } from '../types.js'
-import { cursorToolName } from './names.js'
+import { cursorToolName, isTeamLaneTool } from './names.js'
 import {
   collectAdditionalContext,
   firstNonEmpty,
@@ -130,8 +130,10 @@ export function registerHooks(
       }
       return permissionPre ? permissionPre(exec, next) : next()
     } catch (error) {
-      logger.warn?.(`cursor: preToolUse hooks failed: ${errorMessage(error)}`)
-      return permissionPre ? permissionPre(exec, next) : next()
+      const reason = `cursor preToolUse hooks failed: ${errorMessage(error)}`
+      logger.warn?.(reason)
+      if (isTeamLaneTool(exec.name)) return next()
+      return { kind: 'deny', reason }
     }
   })
 

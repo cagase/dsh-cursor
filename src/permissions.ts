@@ -1,9 +1,12 @@
-import { cursorToolName } from './hooks/names.js'
+import { isAbsolute, relative, resolve } from 'node:path'
+import { cursorToolName, isTeamLaneTool } from './hooks/names.js'
 import type { PluginLogger, PreToolDecision, ToolExecutionLike } from './types.js'
 import { errorMessage, isPlainObject, matchGlob, toolCommand, toolFilePath } from './util.js'
 import type { CursorSettingsLoader } from './settings.js'
 
 type TokenKind = 'shell' | 'read' | 'write' | 'webfetch' | 'mcp'
+
+let notedApprovalMode = false
 
 interface ParsedToken {
   kind: TokenKind
@@ -31,19 +34,20 @@ export function evaluateCursorPermissions(
   allow: readonly string[],
   deny: readonly string[],
   exec: ToolExecutionLike,
+  cwd?: string,
 ): PermissionVerdict {
   const name = cursorToolName(exec.name)
   let allowed = false
   for (const raw of allow) {
     const token = parseToken(raw)
-    if (token !== undefined && tokenMatches(token, name, exec.arguments, exec.name)) {
+    if (token !== undefined && tokenMatches(token, name, exec.arguments, exec.name, cwd)) {
       allowed = true
       break
     }
   }
   for (const raw of deny) {
     const token = parseToken(raw)
-    if (token !== undefined && tokenMatches(token, name, exec.arguments, exec.name)) {
+    if (token !== undefined && tokenMatches(token, name, exec.arguments, exec.name, cwd)) {
       return { kind: 'deny', reason: `denied by a Cursor permission rule (${raw})` }
     }
   }
@@ -51,7 +55,7 @@ export function evaluateCursorPermissions(
   return undefined
 }
 
-function tokenMatches(token: ParsedToken, toolName: string, args: unknown, dshName: string): boolean {
+function tokenMatches(token: ParsedToken, toolName: string, args: unknown, dshName: string, cwd?: string): boolean {
   switch (token.kind) {
     case 'shell': {
       if (toolName !== 'Shell') return false
@@ -66,9 +70,9 @@ function tokenMatches(token: ParsedToken, toolName: string, args: unknown, dshNa
       return true
     }
     case 'read':
-      return toolName === 'Read' && pathMatches(token.pattern, toolFilePath(args))
+      return toolName === 'Read' && pathMatches(token.pattern, toolFilePath(args), cwd)
     case 'write':
-      return (toolName === 'Write' || toolName === 'Edit') && pathMatches(token.pattern, toolFilePath(args))
+      return (toolName === 'Write' || toolName === 'Edit') && pathMatches(token.pattern, toolFilePath(args), cwd)
     case 'webfetch': {
       if (toolName !== 'WebFetch') return false
       const url = isPlainObject(args) && typeof args.url === 'string' ? args.url : undefined
@@ -88,9 +92,18 @@ function tokenMatches(token: ParsedToken, toolName: string, args: unknown, dshNa
   }
 }
 
-function pathMatches(pattern: string, path: string | undefined): boolean {
+function pathMatches(pattern: string, path: string | undefined, cwd?: string): boolean {
   if (path === undefined) return false
-  return matchGlob(pattern, path.replace(/\\/g, '/'))
+  let glob = pattern.replace(/\\/g, '/').trim()
+  while (glob.startsWith('./')) glob = glob.slice(2)
+  if (glob.startsWith('/')) glob = glob.slice(1)
+  let target = path.replace(/\\/g, '/')
+  if (cwd !== undefined && cwd !== '') {
+    const rel = relative(resolve(cwd), resolve(target)).replace(/\\/g, '/')
+    if (rel === '' || rel === '..' || rel.startsWith('../') || isAbsolute(rel)) return false
+    target = rel
+  }
+  return matchGlob(glob, target)
 }
 
 function splitMcp(toolName: string): [string, string] {
@@ -114,17 +127,20 @@ export function createPermissionsGate(
     if (!agent) return next()
     try {
       const settings = await loader.load(agent.session.header.cwd)
-      if (settings.approvalMode) {
+      if (settings.approvalMode && !notedApprovalMode) {
+        notedApprovalMode = true
         logger.warn?.(
           `cursor: cli approvalMode=${JSON.stringify(settings.approvalMode)} is not enforced; DSH owns approval/sandbox`,
         )
       }
-      const verdict = evaluateCursorPermissions(settings.permissionAllow, settings.permissionDeny, exec)
+      const verdict = evaluateCursorPermissions(settings.permissionAllow, settings.permissionDeny, exec, agent.session.header.cwd)
       if (verdict?.kind === 'deny') return { kind: 'deny', reason: verdict.reason }
       return next()
     } catch (error) {
-      logger.warn?.(`cursor: permission rules failed: ${errorMessage(error)}`)
-      return next()
+      const reason = `cursor permission rules failed: ${errorMessage(error)}`
+      logger.warn?.(reason)
+      if (isTeamLaneTool(exec.name)) return next()
+      return { kind: 'deny', reason }
     }
   }
 }
